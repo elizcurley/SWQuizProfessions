@@ -1,154 +1,113 @@
-// External JS for Social Work Path Quiz (GitHub Pages friendly)
-// Scores eight pathways using a broader 30-item bank and relative (z-score) scaling
-// so “agreeing with everything” doesn’t flatten results.
+// Social Work Path Quiz — student-friendly item bank + relative scoring
+// Put this file next to index.html and ensure index.html loads it with:
+//   <script src="app.js" defer></script>
 
 window.addEventListener('DOMContentLoaded', () => {
   const fatal = (err) => {
     try {
       let slot = document.getElementById('content');
       if (!slot) {
-        slot = document.createElement('div');
-        slot.id = 'content';
+        slot = document.createElement('div'); slot.id = 'content';
         (document.querySelector('section') || document.body).appendChild(slot);
       }
       slot.innerHTML = `
         <div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800">
           <p class="font-semibold">The quiz script hit an error.</p>
-          <p class="mt-1 text-sm">Open your browser console and share the red message. Try a hard refresh (Ctrl/Cmd+Shift+R).</p>
+          <p class="mt-1 text-sm">Open the browser console and share the red message. Try a hard refresh (Cmd/Ctrl-Shift-R).</p>
         </div>`;
     } catch {}
     console.error('[SW Quiz] Fatal error:', err);
   };
 
   try {
-    /** CONFIG & DATA **/
     const STORAGE_KEY = 'sw-path-quiz-v1';
 
     const PATHWAYS = [
       { id: 'clinical', name: 'Clinical / Therapy',
         blurb: 'One-on-one and small-group counseling, assessment, treatment planning, crisis intervention.',
-        courses: ['Clinical Practice I/II', 'Psychopathology/Assessment', 'Trauma-Informed Practice'],
-        practicum: ['Outpatient mental health clinic', 'Hospital psych unit', 'College counseling'] },
-
+        courses: ['Clinical Practice I/II','Psychopathology/Assessment','Trauma-Informed Practice'],
+        practicum: ['Outpatient mental health clinic','Hospital psych unit','College counseling'] },
       { id: 'school', name: 'School Social Work',
-        blurb: 'Supporting students, families, and educators; MTSS/RTI, attendance, and IEP collaboration.',
-        courses: ['School Social Work', 'Child & Adolescent Practice', 'Family Systems'],
-        practicum: ['K–12 schools', 'Alternative education programs', 'After-school programs'] },
-
+        blurb: 'Supporting students, families, and educators; attendance, IEP collaboration, prevention.',
+        courses: ['School Social Work','Child & Adolescent Practice','Family Systems'],
+        practicum: ['K–12 schools','Alternative education','After-school programs'] },
       { id: 'medical', name: 'Health / Medical Social Work',
-        blurb: 'Hospitals, clinics, care transitions, interdisciplinary teams, discharge planning.',
-        courses: ['Health/Meds SW', 'Integrated Care', 'Motivational Interviewing'],
-        practicum: ['Medical-surgical unit', 'Primary care clinic', 'Oncology/NICU'] },
-
+        blurb: 'Hospitals and clinics, care transitions, discharge planning, team-based care.',
+        courses: ['Health/Medical SW','Integrated Care','Motivational Interviewing'],
+        practicum: ['Medical-surgical unit','Primary care clinic','Oncology/NICU'] },
       { id: 'childfam', name: 'Child & Family Welfare',
-        blurb: 'Safety, permanency, wellbeing; prevention, family preservation, foster/kinship support.',
-        courses: ['Child Welfare', 'Family Systems', 'Trauma & Resilience'],
-        practicum: ['CPS/child welfare services', 'Family resource centers', 'Prevention programs'] },
-
+        blurb: 'Safety, permanency, family preservation, foster/kinship support, prevention.',
+        courses: ['Child Welfare','Family Systems','Trauma & Resilience'],
+        practicum: ['Child welfare services','Family resource centers','Prevention programs'] },
       { id: 'community', name: 'Community Organizing & Program Development',
-        blurb: 'Coalition building, outreach, program design/management, fundraising and partnerships.',
-        courses: ['Macro Practice', 'Program Planning', 'Community Organizing'],
-        practicum: ['Community-based nonprofits', 'Neighborhood initiatives', 'Mutual aid orgs'] },
-
+        blurb: 'Coalitions, outreach, program design/management, fundraising and partnerships.',
+        courses: ['Macro Practice','Program Planning','Community Organizing'],
+        practicum: ['Community-based nonprofits','Neighborhood initiatives','Mutual aid orgs'] },
       { id: 'policy', name: 'Policy & Advocacy',
-        blurb: 'Legislative advocacy, policy analysis, systems design, coalition politics.',
-        courses: ['Policy Analysis', 'Advocacy & Lobbying', 'Economics of Social Policy'],
-        practicum: ['Legislative offices', 'Policy think tanks', 'Advocacy coalitions'] },
-
+        blurb: 'Legislative advocacy, policy analysis, systems design, public testimony.',
+        courses: ['Policy Analysis','Advocacy & Lobbying','Economics of Social Policy'],
+        practicum: ['Legislative offices','Policy think tanks','Advocacy coalitions'] },
       { id: 'research', name: 'Research & Program Evaluation',
-        blurb: 'Study design, measurement, implementation science, data visualization and reporting.',
-        courses: ['Research Methods', 'Program Evaluation', 'Data Analysis/Stats'],
-        practicum: ['Research centers', 'Evaluation firms', 'University labs'] },
-
+        blurb: 'Study design, measurement, implementation, clear reporting and evidence use.',
+        courses: ['Research Methods','Program Evaluation','Data Analysis/Stats'],
+        practicum: ['Research centers','Evaluation firms','University labs'] },
       { id: 'justice', name: 'Justice / Forensic Social Work',
-        blurb: 'Courts, reentry, probation, corrections; mitigation, diversion, and family support.',
-        courses: ['Forensic/Justice SW', 'Substance Use & Recovery', 'Trauma-Informed Systems'],
-        practicum: ['Public defender/mitigation teams', 'Reentry programs', 'Problem-solving courts'] },
+        blurb: 'Courts, reentry, probation, mitigation, diversion, family support around the legal system.',
+        courses: ['Forensic/Justice SW','Substance Use & Recovery','Trauma-Informed Systems'],
+        practicum: ['Public defender teams','Reentry programs','Problem-solving courts'] },
     ];
 
-    // 30 values/conditions-based prompts
+    // 30 prompts — plain language, values & conditions based (no jargon)
     const QUESTIONS = [
-      { id: 'q1',  text: 'Meaningful impact for me looks like growth in an individual or small team.' },
-      { id: 'q2',  text: 'I’m motivated by shifting systems, policies, or resource flows.' },
-      { id: 'q3',  text: 'I enjoy translating complex information so others can act on it.' },
-      { id: 'q4',  text: 'I like facilitating groups to align and move in the same direction.' },
-      { id: 'q5',  text: 'Fast-paced, time-sensitive situations bring out my focus.' },
-      { id: 'q6',  text: 'I’m drawn to work that navigates rights, ethics, and accountability.' },
-      { id: 'q7',  text: 'Clear measures and data I can track over time keep me motivated.' },
-      { id: 'q8',  text: 'I prefer varied, mobile days over primarily desk-based work.' },
-      { id: 'q9',  text: 'I value continuity and long-term relationships over quick turnarounds.' },
-      { id: 'q10', text: 'Building programs or processes from scratch energizes me.' },
-      { id: 'q11', text: 'I’d rather design systems than provide day-to-day direct services.' },
-      { id: 'q12', text: 'Learning and development environments feel like home to me.' },
-      { id: 'q13', text: 'Health and wellbeing contexts feel especially meaningful to me.' },
-      { id: 'q14', text: 'Supporting safety and stability for children and families is a priority for me.' },
-      { id: 'q15', text: 'I’m comfortable engaging with laws, courts, or formal accountability.' },
-      { id: 'q16', text: 'I like convening diverse stakeholders to co-create solutions.' },
-      { id: 'q17', text: 'Reducing systemic inequities is a central motivation for my work.' },
-      { id: 'q18', text: 'I prefer predictable routines and calendars over constant novelty.' },
-      { id: 'q19', text: 'I’m comfortable with mandated reporting and strict compliance requirements.' },
-      { id: 'q20', text: 'I like brief, solution-focused engagements more than long-term ones.' },
-      { id: 'q21', text: 'Public speaking, hearings, or presenting to groups energize me.' },
-      { id: 'q22', text: 'I enjoy deep, heads-down analysis time.' },
-      { id: 'q23', text: 'Building coalitions across organizations with different agendas sounds exciting.' },
-      { id: 'q24', text: 'Regular home or community visits are something I’d welcome.' },
-      { id: 'q25', text: 'I’m drawn to youth and educational environments.' },
-      { id: 'q26', text: 'I like negotiating with bureaucracies to get services approved.' },
-      { id: 'q27', text: 'I’d rather write memos/briefs than facilitate counseling sessions.' },
-      { id: 'q28', text: 'I’m okay with shift work and occasional weekends if the role needs it.' },
-      { id: 'q29', text: 'I want to lead teams and manage programs.' },
-      { id: 'q30', text: 'Dashboards and KPIs are more useful to me than narrative case notes.' },
+      { id: 'q1',  text: 'I like talking one-on-one with someone to help them figure things out.' },
+      { id: 'q2',  text: 'I get curious about how rules and policies shape people’s options—and how to change them.' },
+      { id: 'q3',  text: 'I enjoy turning messy information into a clear explanation or short brief.' },
+      { id: 'q4',  text: 'I like running groups and getting people moving in the same direction.' },
+      { id: 'q5',  text: 'I focus well in fast-moving or crisis moments.' },
+      { id: 'q6',  text: 'I want work that deals with rights, ethics, and accountability.' },
+      { id: 'q7',  text: 'Seeing simple progress over time (even small wins) keeps me motivated.' },
+      { id: 'q8',  text: 'I prefer days with movement and field visits over mostly desk time.' },
+      { id: 'q9',  text: 'I enjoy building long-term relationships with clients, students, or families.' },
+      { id: 'q10', text: 'I get energy from starting new programs or making a service run better.' },
+      { id: 'q11', text: 'I’d rather design systems and processes than provide therapy myself.' },
+      { id: 'q12', text: 'Working in a school or youth setting sounds appealing to me.' },
+      { id: 'q13', text: 'Working in health/medical settings sounds appealing to me.' },
+      { id: 'q14', text: 'Helping children and families feel safe and stable matters a lot to me.' },
+      { id: 'q15', text: 'I’m comfortable engaging with courts, public defenders, probation, or corrections.' },
+      { id: 'q16', text: 'I like bringing people from different organizations together to solve a problem.' },
+      { id: 'q17', text: 'Reducing inequities and improving fairness at a systems level motivates me.' },
+      { id: 'q18', text: 'I prefer predictable routines and schedules.' },
+      { id: 'q19', text: 'I’m okay with mandated reporting and detailed documentation.' },
+      { id: 'q20', text: 'I like brief, solution-focused contacts more than long-term ones.' },
+      { id: 'q21', text: 'I’m comfortable speaking up in front of a group or presenting.' },
+      { id: 'q22', text: 'I enjoy deep, independent work time.' },
+      { id: 'q23', text: 'I’d enjoy doing home, hospital, or community visits.' },
+      { id: 'q24', text: 'I like negotiating with agencies or insurers to get services approved.' },
+      { id: 'q25', text: 'I’d rather write a brief/report than run a counseling session.' },
+      { id: 'q26', text: 'I’m open to shifts, evenings, or weekends if the role needs it.' },
+      { id: 'q27', text: 'I want to mentor or supervise a small team.' },
+      { id: 'q28', text: 'I enjoy using simple feedback or data to improve programs.' },
+      { id: 'q29', text: 'Reentry work, diversion programs, or problem-solving courts sound meaningful.' },
+      { id: 'q30', text: 'I’d rather help many people indirectly by improving a system than help a few people directly.' },
     ];
 
-    // Per-question weights by pathway (−2..+2 typical). Unlisted questions default to 0.
+    // Weights per path (−2..+2). Unlisted questions default to 0.
     const WEIGHTS = {
-      clinical: {
-        q1: 2,  q2: -1, q3: 1,  q4: 0,  q5: 1,  q6: 1,  q7: 0,  q8: 0,  q9: 2,  q10: 0, q11: -1, q12: 1,
-        q13: 1, q14: 1,  q15: 0, q16: 0, q17: 1,  q18: 1,  q19: 0, q20: -2, q21: 0, q22: -1, q23: 0,
-        q24: 0, q25: 1,  q26: 0, q27: -2, q28: -1, q29: 0,  q30: -1
-      },
-      school: {
-        q1: 1,  q2: 0,  q3: 1,  q4: 1,  q5: 0,  q6: 0,  q7: 0,  q8: 0,  q9: 2,  q10: 0, q11: 0,  q12: 2,
-        q13: 0, q14: 1,  q15: 0, q16: 1, q17: 1,  q18: 2,  q19: 1, q20: 0,  q21: 1, q22: 0,  q23: 1,
-        q24: 1, q25: 2,  q26: 1, q27: 0,  q28: -2, q29: 1, q30: 0
-      },
-      medical: {
-        q1: 1,  q2: 0,  q3: 0,  q4: 0,  q5: 2,  q6: 0,  q7: 1,  q8: 1,  q9: 0,  q10: 1, q11: 0,  q12: 0,
-        q13: 2, q14: 0,  q15: 0, q16: 0, q17: 0,  q18: -1, q19: 0, q20: 2,  q21: 0, q22: 0,  q23: 0,
-        q24: 1, q25: 0,  q26: 2, q27: 1,  q28: 2,  q29: 1, q30: 1
-      },
-      childfam: {
-        q1: 1,  q2: 0,  q3: 0,  q4: 1,  q5: 1,  q6: 1,  q7: 0,  q8: 1,  q9: 1,  q10: 0, q11: 0,  q12: 1,
-        q13: 0, q14: 2,  q15: 1, q16: 1, q17: 1,  q18: 1,  q19: 2, q20: 0,  q21: 0, q22: 0,  q23: 1,
-        q24: 2, q25: 1,  q26: 1, q27: 0,  q28: 1,  q29: 1, q30: 0
-      },
-      community: {
-        q1: 0,  q2: 2,  q3: 1,  q4: 2,  q5: 1,  q6: 0,  q7: 0,  q8: 2,  q9: 0,  q10: 2, q11: 1,  q12: 0,
-        q13: 0, q14: 1,  q15: 0, q16: 2, q17: 2,  q18: -1, q19: 0, q20: 1,  q21: 2, q22: -1, q23: 2,
-        q24: 1, q25: 1,  q26: 1, q27: 0,  q28: 1,  q29: 2, q30: 1
-      },
-      policy: {
-        q1: -1, q2: 2,  q3: 2,  q4: 1,  q5: 0,  q6: 1,  q7: 1,  q8: 0,  q9: 0,  q10: 1, q11: 2,  q12: 0,
-        q13: 0, q14: 0,  q15: 2, q16: 2, q17: 2,  q18: 0,  q19: 1, q20: 1,  q21: 2, q22: 1,  q23: 2,
-        q24: 0, q25: 0,  q26: 1, q27: 2,  q28: 0,  q29: 1, q30: 1
-      },
-      research: {
-        q1: -1, q2: 1,  q3: 2,  q4: 0,  q5: 0,  q6: 0,  q7: 2,  q8: -1, q9: 2,  q10: 1, q11: 2,  q12: 1,
-        q13: 0, q14: 0,  q15: 0, q16: 1, q17: 1,  q18: 1,  q19: 0, q20: 0,  q21: 1, q22: 2,  q23: 0,
-        q24: -1,q25: 0,  q26: 0, q27: 2,  q28: 0,  q29: 0, q30: 2
-      },
-      justice: {
-        q1: 0,  q2: 1,  q3: 1,  q4: 0,  q5: 1,  q6: 2,  q7: 0,  q8: 1,  q9: 0,  q10: 1, q11: 0,  q12: 0,
-        q13: 0, q14: 1,  q15: 2, q16: 1, q17: 2,  q18: -1, q19: 2, q20: 1,  q21: 1, q22: 0,  q23: 1,
-        q24: 1, q25: 0,  q26: 1, q27: 1,  q28: 1,  q29: 0, q30: 0
-      },
+      clinical: { q1:2,q2:-1,q3:0,q4:0,q5:1,q6:1,q7:0,q8:0,q9:2,q10:0,q11:-2,q12:1,q13:1,q14:1,q15:0,q16:0,q17:1,q18:1,q19:1,q20:-1,q21:0,q22:-1,q23:0,q24:0,q25:-2,q26:0,q27:1,q28:0,q29:0,q30:-2 },
+      school:   { q1:1,q2:0,q3:0,q4:1,q5:0,q6:0,q7:1,q8:0,q9:2,q10:0,q11:0,q12:2,q13:0,q14:1,q15:0,q16:1,q17:1,q18:2,q19:1,q20:-1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:-1,q27:1,q28:1,q29:0,q30:0 },
+      medical:  { q1:1,q2:0,q3:0,q4:0,q5:2,q6:0,q7:1,q8:1,q9:0,q10:1,q11:0,q12:0,q13:2,q14:0,q15:0,q16:0,q17:0,q18:-1,q19:1,q20:1,q21:0,q22:0,q23:1,q24:2,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0 },
+      childfam: { q1:1,q2:0,q3:0,q4:1,q5:1,q6:1,q7:0,q8:1,q9:1,q10:0,q11:0,q12:1,q13:0,q14:2,q15:1,q16:1,q17:1,q18:1,q19:2,q20:0,q21:0,q22:0,q23:1,q24:1,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0 },
+      community:{ q1:0,q2:1,q3:1,q4:2,q5:1,q6:0,q7:0,q8:2,q9:0,q10:2,q11:1,q12:0,q13:0,q14:1,q15:0,q16:2,q17:2,q18:-1,q19:0,q20:1,q21:1,q22:-1,q23:1,q24:1,q25:0,q26:1,q27:2,q28:1,q29:1,q30:1 },
+      policy:   { q1:-1,q2:2,q3:2,q4:1,q5:0,q6:1,q7:1,q8:0,q9:0,q10:1,q11:2,q12:0,q13:0,q14:0,q15:1,q16:1,q17:2,q18:0,q19:1,q20:1,q21:2,q22:1,q23:0,q24:1,q25:1,q26:0,q27:1,q28:1,q29:1,q30:2 },
+      research: { q1:-1,q2:1,q3:2,q4:0,q5:0,q6:0,q7:2,q8:-1,q9:1,q10:1,q11:1,q12:0,q13:0,q14:0,q15:0,q16:0,q17:1,q18:1,q19:0,q20:0,q21:1,q22:2,q23:-1,q24:0,q25:2,q26:0,q27:0,q28:2,q29:0,q30:1 },
+      justice:  { q1:1,q2:1,q3:0,q4:0,q5:1,q6:2,q7:0,q8:1,q9:0,q10:0,q11:0,q12:0,q13:0,q14:1,q15:2,q16:1,q17:1,q18:-1,q19:1,q20:1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:1,q27:0,q28:0,q29:2,q30:0 },
     };
 
-    /** STATE **/
-    let answers = loadAnswers();  // { q1: 1..5 }
-    let step = loadStep();        // 0=intro, 1..N=questions, N+1=results
+    // ---- State ----
+    let answers = loadAnswers(); // { q#: 1..5 }
+    let step = loadStep();       // 0=intro, 1..N=questions, N+1=results
 
-    /** RENDER **/
+    // ---- Render ----
     function render() {
       updateProgress();
       const slot = ensureSlot();
@@ -161,8 +120,7 @@ window.addEventListener('DOMContentLoaded', () => {
     function ensureSlot() {
       let slot = document.getElementById('content');
       if (!slot) {
-        slot = document.createElement('div');
-        slot.id = 'content';
+        slot = document.createElement('div'); slot.id = 'content';
         slot.className = 'p-6 md:p-8';
         (document.querySelector('section') || document.body).appendChild(slot);
       }
@@ -173,10 +131,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const el = document.createElement('div');
       el.innerHTML = `
         <div class="flex flex-col gap-4">
-          <p class="text-slate-700">
-            These prompts focus on values, pace, and working conditions—not specific settings or skills.
-            Answer for what sounds energizing, even if it’s new to you.
-          </p>
+          <p class="text-slate-700">These prompts focus on values, pace, and working conditions—not specific settings or skills. Answer for what sounds energizing, even if it’s new to you.</p>
           <ul class="list-disc pl-6 text-slate-600 space-y-1">
             <li>No logins. Your progress saves locally.</li>
             <li>You can skip questions and come back.</li>
@@ -253,8 +208,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <div class="grid gap-4">${bars}</div>
           <div class="mt-4"><h3 class="text-xl font-semibold">Your Top Matches</h3><div class="mt-3 grid gap-4 md:grid-cols-2">${top3}</div></div>
           <div class="mt-2 text-xs text-slate-500">
-            <p><span class="font-semibold">How this works:</span> We center each 1–5 answer to −2..+2 and apply a weight matrix to each pathway.
-            Then we use <em>relative scoring</em> (z-scores across the eight paths) so saying “agree” to everything doesn’t give all 90s—your strongest alignments rise above your average. Scores are scaled so ~50 is your midpoint.</p>
+            <p><span class="font-semibold">How this works:</span> Each 1–5 answer is centered to −2..+2 and weighted per pathway, then converted to a <em>relative score</em> (z-score across the eight paths) so agreeing with everything doesn’t give all high scores. ~50 is your personal midpoint.</p>
           </div>
           <div class="no-print mt-4 flex items-center gap-3">
             <button class="rounded-xl bg-sky-600 text-white px-4 py-2 text-sm font-semibold hover:bg-sky-700" id="editBtn">Edit answers</button>
@@ -280,30 +234,27 @@ window.addEventListener('DOMContentLoaded', () => {
         </article>`;
     }
 
-    /** SCORING (relative / ipsative) **/
+    // ---- Scoring: relative (ipsative) to create spread even for high-agreement profiles
     function scorePaths() {
-      // Raw totals = Σ (weight * centered answer) for answered items only
-      const rawTotals = {};
-      PATHWAYS.forEach(p => { rawTotals[p.id] = 0; });
-
+      const rawTotals = {}; PATHWAYS.forEach(p => rawTotals[p.id] = 0);
       let answeredCount = 0;
+
       QUESTIONS.forEach(q => {
-        const raw = answers[q.id];
-        if (!raw) return;
+        const a = answers[q.id];
+        if (!a) return;
         answeredCount++;
-        const centered = raw - 3; // -2..+2
+        const centered = a - 3; // −2..+2
         PATHWAYS.forEach(p => {
           const w = (WEIGHTS[p.id] && WEIGHTS[p.id][q.id]) ? WEIGHTS[p.id][q.id] : 0;
           rawTotals[p.id] += w * centered;
         });
       });
 
-      // Convert to z-scores across the 8 paths (for this user), then map to 0..100
       const vals = Object.values(rawTotals);
-      const mean = vals.reduce((a,b)=>a+b,0) / (vals.length || 1);
-      const variance = vals.reduce((a,b)=>a + Math.pow(b - mean, 2), 0) / (vals.length || 1);
+      const mean = vals.reduce((s,v)=>s+v,0) / (vals.length || 1);
+      const variance = vals.reduce((s,v)=>s + Math.pow(v - mean, 2), 0) / (vals.length || 1);
       const stdev = Math.sqrt(variance) || 1;
-      const Z_SCALE = 20; // raise for sharper separation
+      const Z_SCALE = 20; // increase for sharper separation
 
       const scores = {};
       PATHWAYS.forEach(p => {
@@ -312,33 +263,23 @@ window.addEventListener('DOMContentLoaded', () => {
         scores[p.id] = pct;
       });
 
-      const ranked = Object.entries(scores).map(([id, pct]) => ({ id, pct }))
-        .sort((a, b) => b.pct - a.pct);
+      const ranked = Object.entries(scores)
+        .map(([id,pct]) => ({ id, pct }))
+        .sort((a,b) => b.pct - a.pct);
 
       return { scores, ranked, answeredCount };
     }
 
-    /** PERSIST **/
-    function persistAnswers() {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step })); } catch {}
-      updateProgress();
-    }
-    function loadAnswers() {
-      try { const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); return raw && raw.answers ? raw.answers : {}; }
-      catch { return {}; }
-    }
-    function loadStep() {
-      try { const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); return raw && Number.isInteger(raw.step) ? raw.step : 0; }
-      catch { return 0; }
-    }
-    function setStep(n) { step = n; persistAnswers(); render(); }
+    // ---- Storage & wiring ----
+    function persistAnswers(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step })); }catch{} updateProgress(); }
+    function loadAnswers(){ try{ const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); return raw && raw.answers ? raw.answers : {}; } catch { return {}; } }
+    function loadStep(){ try{ const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); return raw && Number.isInteger(raw.step) ? raw.step : 0; } catch { return 0; } }
+    function setStep(n){ step = n; persistAnswers(); render(); }
 
-    /** UI WIRING **/
-    function updateProgress() {
+    function updateProgress(){
       const total = QUESTIONS.length;
       const pct = step === 0 ? 0 : Math.round((Math.max(1, Math.min(step, total)) / total) * 100);
-      const bar = document.getElementById('progressBar');
-      if (bar) bar.style.width = pct + '%';
+      const bar = document.getElementById('progressBar'); if (bar) bar.style.width = pct + '%';
     }
 
     document.addEventListener('change', (e) => {
@@ -363,15 +304,12 @@ window.addEventListener('DOMContentLoaded', () => {
       navigator.clipboard.writeText(text).then(() => toast('Results copied to clipboard')).catch(() => alert('Copy failed.'));
     });
 
-    function toast(msg) {
+    function toast(msg){
       const t = document.createElement('div');
       t.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-3 py-2 rounded-xl shadow-lg';
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 1800);
+      t.textContent = msg; document.body.appendChild(t); setTimeout(()=>t.remove(),1800);
     }
 
-    // Initial paint
     render();
   } catch (err) { fatal(err); }
 });
