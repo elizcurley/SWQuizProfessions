@@ -1,6 +1,5 @@
-// Social Work Path Quiz — student-friendly item bank + relative scoring
-// Put this file next to index.html and ensure index.html loads it with:
-//   <script src="app.js" defer></script>
+// Social Work Path Quiz — 16 pathway version (student-friendly prompts + relative scoring)
+// Place next to index.html and load with: <script src="app.js" defer></script>
 
 window.addEventListener('DOMContentLoaded', () => {
   const fatal = (err) => {
@@ -22,42 +21,92 @@ window.addEventListener('DOMContentLoaded', () => {
   try {
     const STORAGE_KEY = 'sw-path-quiz-v1';
 
+    // -------- PATHWAYS (16) --------
     const PATHWAYS = [
+      // Original 8
       { id: 'clinical', name: 'Clinical / Therapy',
         blurb: 'One-on-one and small-group counseling, assessment, treatment planning, crisis intervention.',
         courses: ['Clinical Practice I/II','Psychopathology/Assessment','Trauma-Informed Practice'],
         practicum: ['Outpatient mental health clinic','Hospital psych unit','College counseling'] },
+
       { id: 'school', name: 'School Social Work',
         blurb: 'Supporting students, families, and educators; attendance, IEP collaboration, prevention.',
         courses: ['School Social Work','Child & Adolescent Practice','Family Systems'],
         practicum: ['K–12 schools','Alternative education','After-school programs'] },
+
       { id: 'medical', name: 'Health / Medical Social Work',
         blurb: 'Hospitals and clinics, care transitions, discharge planning, team-based care.',
         courses: ['Health/Medical SW','Integrated Care','Motivational Interviewing'],
         practicum: ['Medical-surgical unit','Primary care clinic','Oncology/NICU'] },
+
       { id: 'childfam', name: 'Child & Family Welfare',
         blurb: 'Safety, permanency, family preservation, foster/kinship support, prevention.',
         courses: ['Child Welfare','Family Systems','Trauma & Resilience'],
         practicum: ['Child welfare services','Family resource centers','Prevention programs'] },
+
       { id: 'community', name: 'Community Organizing & Program Development',
         blurb: 'Coalitions, outreach, program design/management, fundraising and partnerships.',
         courses: ['Macro Practice','Program Planning','Community Organizing'],
         practicum: ['Community-based nonprofits','Neighborhood initiatives','Mutual aid orgs'] },
+
       { id: 'policy', name: 'Policy & Advocacy',
         blurb: 'Legislative advocacy, policy analysis, systems design, public testimony.',
         courses: ['Policy Analysis','Advocacy & Lobbying','Economics of Social Policy'],
         practicum: ['Legislative offices','Policy think tanks','Advocacy coalitions'] },
+
       { id: 'research', name: 'Research & Program Evaluation',
         blurb: 'Study design, measurement, implementation, clear reporting and evidence use.',
         courses: ['Research Methods','Program Evaluation','Data Analysis/Stats'],
         practicum: ['Research centers','Evaluation firms','University labs'] },
+
       { id: 'justice', name: 'Justice / Forensic Social Work',
         blurb: 'Courts, reentry, probation, mitigation, diversion, family support around the legal system.',
         courses: ['Forensic/Justice SW','Substance Use & Recovery','Trauma-Informed Systems'],
         practicum: ['Public defender teams','Reentry programs','Problem-solving courts'] },
+
+      // New 8
+      { id: 'aging', name: 'Aging / Gerontology',
+        blurb: 'Support for older adults and caregivers; home care, benefits, elder justice, aging services.',
+        courses: ['Gerontology','Benefits/Medicare & Medicaid','Palliative & Long-Term Care'],
+        practicum: ['Area Agencies on Aging','Senior centers','Home health/hospice'] },
+
+      { id: 'substance', name: 'Substance Use & Recovery',
+        blurb: 'Recovery-oriented care; harm reduction, motivational interviewing, treatment & peer supports.',
+        courses: ['Substance Use & Recovery','Motivational Interviewing','Co-Occurring Disorders'],
+        practicum: ['Outpatient/inpatient programs','MAT clinics','Recovery community orgs'] },
+
+      { id: 'housing', name: 'Housing & Homeless Services',
+        blurb: 'Outreach, shelter, rapid rehousing, eviction prevention, landlord/agency navigation.',
+        courses: ['Housing Policy & Services','Case Management','Street Outreach'],
+        practicum: ['Continuum of Care agencies','Shelters/Navigation centers','Rapid Re-Housing teams'] },
+
+      { id: 'disability', name: 'Disability & Accessibility Services',
+        blurb: 'Independent living, accommodations, benefits, accessibility and rights.',
+        courses: ['Disability Studies','IEP/504 Advocacy','Benefits Navigation (SSI/SSDI)'],
+        practicum: ['Centers for Independent Living','Vocational rehab','Disability rights orgs'] },
+
+      { id: 'immigration', name: 'Immigration & Refugee Services',
+        blurb: 'Resettlement, legal aid partnerships, language access, trauma-informed supports.',
+        courses: ['Immigration Policy','Cross-Cultural Practice','Trauma & Resilience'],
+        practicum: ['Refugee resettlement agencies','Legal aid immigration units','Community orgs'] },
+
+      { id: 'dv', name: 'Domestic & Gender-Based Violence',
+        blurb: 'Crisis response, safety planning, survivor advocacy, civil/criminal legal navigation.',
+        courses: ['Trauma-Informed Practice','DV & Safety Planning','Forensic/Justice SW'],
+        practicum: ['DV shelters','Family justice centers','Campus Title IX offices'] },
+
+      { id: 'veterans', name: 'Military & Veterans Services',
+        blurb: 'Veteran-centered care; benefits, family support, transition, trauma-informed practice.',
+        courses: ['Military Culture & BH','VA Systems & Benefits','Trauma/PTSD'],
+        practicum: ['VA medical centers','Vet Centers','Military family support orgs'] },
+
+      { id: 'hospice', name: 'Hospice & Palliative Care',
+        blurb: 'End-of-life care, family support, grief and bereavement, interdisciplinary teams.',
+        courses: ['Palliative Care','Grief & Bereavement','Medical SW'],
+        practicum: ['Hospice agencies','Hospital palliative teams','Home-based care'] },
     ];
 
-    // 30 prompts — plain language, values & conditions based (no jargon)
+    // -------- PROMPTS (30) --------
     const QUESTIONS = [
       { id: 'q1',  text: 'I like talking one-on-one with someone to help them figure things out.' },
       { id: 'q2',  text: 'I get curious about how rules and policies shape people’s options—and how to change them.' },
@@ -91,23 +140,34 @@ window.addEventListener('DOMContentLoaded', () => {
       { id: 'q30', text: 'I’d rather help many people indirectly by improving a system than help a few people directly.' },
     ];
 
-    // Weights per path (−2..+2). Unlisted questions default to 0.
+    // -------- WEIGHT MATRIX (−2..+2 typical; omissions default to 0) --------
     const WEIGHTS = {
-      clinical: { q1:2,q2:-1,q3:0,q4:0,q5:1,q6:1,q7:0,q8:0,q9:2,q10:0,q11:-2,q12:1,q13:1,q14:1,q15:0,q16:0,q17:1,q18:1,q19:1,q20:-1,q21:0,q22:-1,q23:0,q24:0,q25:-2,q26:0,q27:1,q28:0,q29:0,q30:-2 },
-      school:   { q1:1,q2:0,q3:0,q4:1,q5:0,q6:0,q7:1,q8:0,q9:2,q10:0,q11:0,q12:2,q13:0,q14:1,q15:0,q16:1,q17:1,q18:2,q19:1,q20:-1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:-1,q27:1,q28:1,q29:0,q30:0 },
-      medical:  { q1:1,q2:0,q3:0,q4:0,q5:2,q6:0,q7:1,q8:1,q9:0,q10:1,q11:0,q12:0,q13:2,q14:0,q15:0,q16:0,q17:0,q18:-1,q19:1,q20:1,q21:0,q22:0,q23:1,q24:2,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0 },
-      childfam: { q1:1,q2:0,q3:0,q4:1,q5:1,q6:1,q7:0,q8:1,q9:1,q10:0,q11:0,q12:1,q13:0,q14:2,q15:1,q16:1,q17:1,q18:1,q19:2,q20:0,q21:0,q22:0,q23:1,q24:1,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0 },
-      community:{ q1:0,q2:1,q3:1,q4:2,q5:1,q6:0,q7:0,q8:2,q9:0,q10:2,q11:1,q12:0,q13:0,q14:1,q15:0,q16:2,q17:2,q18:-1,q19:0,q20:1,q21:1,q22:-1,q23:1,q24:1,q25:0,q26:1,q27:2,q28:1,q29:1,q30:1 },
-      policy:   { q1:-1,q2:2,q3:2,q4:1,q5:0,q6:1,q7:1,q8:0,q9:0,q10:1,q11:2,q12:0,q13:0,q14:0,q15:1,q16:1,q17:2,q18:0,q19:1,q20:1,q21:2,q22:1,q23:0,q24:1,q25:1,q26:0,q27:1,q28:1,q29:1,q30:2 },
-      research: { q1:-1,q2:1,q3:2,q4:0,q5:0,q6:0,q7:2,q8:-1,q9:1,q10:1,q11:1,q12:0,q13:0,q14:0,q15:0,q16:0,q17:1,q18:1,q19:0,q20:0,q21:1,q22:2,q23:-1,q24:0,q25:2,q26:0,q27:0,q28:2,q29:0,q30:1 },
-      justice:  { q1:1,q2:1,q3:0,q4:0,q5:1,q6:2,q7:0,q8:1,q9:0,q10:0,q11:0,q12:0,q13:0,q14:1,q15:2,q16:1,q17:1,q18:-1,q19:1,q20:1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:1,q27:0,q28:0,q29:2,q30:0 },
+      // original 8 (kept from prior student-friendly version)
+      clinical:  { q1:2,q2:-1,q3:0,q4:0,q5:1,q6:1,q7:0,q8:0,q9:2,q10:0,q11:-2,q12:1,q13:1,q14:1,q15:0,q16:0,q17:1,q18:1,q19:1,q20:-1,q21:0,q22:-1,q23:0,q24:0,q25:-2,q26:0,q27:1,q28:0,q29:0,q30:-2 },
+      school:    { q1:1,q2:0,q3:0,q4:1,q5:0,q6:0,q7:1,q8:0,q9:2,q10:0,q11:0,q12:2,q13:0,q14:1,q15:0,q16:1,q17:1,q18:2,q19:1,q20:-1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:-1,q27:1,q28:1,q29:0,q30:0 },
+      medical:   { q1:1,q2:0,q3:0,q4:0,q5:2,q6:0,q7:1,q8:1,q9:0,q10:1,q11:0,q12:0,q13:2,q14:0,q15:0,q16:0,q17:0,q18:-1,q19:1,q20:1,q21:0,q22:0,q23:1,q24:2,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0 },
+      childfam:  { q1:1,q2:0,q3:0,q4:1,q5:1,q6:1,q7:0,q8:1,q9:1,q10:0,q11:0,q12:1,q13:0,q14:2,q15:1,q16:1,q17:1,q18:1,q19:2,q20:0,q21:0,q22:0,q23:1,q24:1,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0 },
+      community: { q1:0,q2:1,q3:1,q4:2,q5:1,q6:0,q7:0,q8:2,q9:0,q10:2,q11:1,q12:0,q13:0,q14:1,q15:0,q16:2,q17:2,q18:-1,q19:0,q20:1,q21:1,q22:-1,q23:1,q24:1,q25:0,q26:1,q27:2,q28:1,q29:1,q30:1 },
+      policy:    { q1:-1,q2:2,q3:2,q4:1,q5:0,q6:1,q7:1,q8:0,q9:0,q10:1,q11:2,q12:0,q13:0,q14:0,q15:1,q16:1,q17:2,q18:0,q19:1,q20:1,q21:2,q22:1,q23:0,q24:1,q25:1,q26:0,q27:1,q28:1,q29:1,q30:2 },
+      research:  { q1:-1,q2:1,q3:2,q4:0,q5:0,q6:0,q7:2,q8:-1,q9:1,q10:1,q11:1,q12:0,q13:0,q14:0,q15:0,q16:0,q17:1,q18:1,q19:0,q20:0,q21:1,q22:2,q23:-1,q24:0,q25:2,q26:0,q27:0,q28:2,q29:0,q30:1 },
+      justice:   { q1:1,q2:1,q3:0,q4:0,q5:1,q6:2,q7:0,q8:1,q9:0,q10:0,q11:0,q12:0,q13:0,q14:1,q15:2,q16:1,q17:1,q18:-1,q19:1,q20:1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:0,q27:0,q28:0,q29:2,q30:0 },
+
+      // new 8
+      aging:     { q1:2,q2:0,q3:0,q4:0,q5:0,q6:1,q7:1,q8:1,q9:2,q10:0,q11:-1,q12:0,q13:1,q14:0,q15:0,q16:1,q17:1,q18:2,q19:2,q20:-1,q21:0,q22:0,q23:2,q24:2,q25:-1,q26:1,q27:1,q28:1,q29:0,q30:-1 },
+      substance: { q1:1,q2:0,q3:0,q4:1,q5:2,q6:1,q7:1,q8:1,q9:0,q10:0,q11:-1,q12:0,q13:1,q14:0,q15:1,q16:0,q17:1,q18:-1,q19:1,q20:1,q21:0,q22:0,q23:1,q24:1,q25:-1,q26:2,q27:0,q28:1,q29:1,q30:-1 },
+      housing:   { q1:1,q2:1,q3:0,q4:1,q5:2,q6:1,q7:1,q8:2,q9:0,q10:1,q11:-1,q12:0,q13:0,q14:1,q15:1,q16:2,q17:2,q18:-2,q19:1,q20:1,q21:0,q22:-1,q23:2,q24:2,q25:-1,q26:2,q27:1,q28:1,q29:1,q30:1 },
+      disability:{ q1:1,q2:1,q3:1,q4:0,q5:0,q6:2,q7:1,q8:0,q9:2,q10:1,q11:0,q12:1,q13:0,q14:1,q15:1,q16:1,q17:2,q18:1,q19:2,q20:-1,q21:0,q22:0,q23:1,q24:2,q25:0,q26:0,q27:1,q28:1,q29:0,q30:1 },
+      immigration:{q1:1,q2:2,q3:1,q4:0,q5:1,q6:2,q7:0,q8:1,q9:1,q10:0,q11:0,q12:0,q13:0,q14:1,q15:2,q16:1,q17:2,q18:-1,q19:0,q20:-1,q21:1,q22:0,q23:1,q24:2,q25:1,q26:0,q27:0,q28:0,q29:0,q30:1 },
+      dv:        { q1:1,q2:1,q3:0,q4:0,q5:2,q6:2,q7:0,q8:1,q9:1,q10:0,q11:-1,q12:0,q13:0,q14:1,q15:2,q16:1,q17:2,q18:-1,q19:2,q20:1,q21:0,q22:0,q23:1,q24:1,q25:-1,q26:1,q27:0,q28:0,q29:0,q30:0 },
+      veterans:  { q1:1,q2:0,q3:0,q4:0,q5:1,q6:1,q7:1,q8:1,q9:2,q10:0,q11:0,q12:0,q13:1,q14:0,q15:1,q16:1,q17:1,q18:1,q19:1,q20:0,q21:0,q22:0,q23:1,q24:2,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0 },
+      hospice:   { q1:2,q2:0,q3:0,q4:0,q5:1,q6:1,q7:1,q8:1,q9:2,q10:0,q11:-1,q12:0,q13:2,q14:0,q15:0,q16:0,q17:1,q18:1,q19:1,q20:-1,q21:0,q22:0,q23:2,q24:1,q25:-1,q26:1,q27:1,q28:1,q29:0,q30:0 },
     };
 
-    // ---- State ----
+    // -------- STATE --------
     let answers = loadAnswers(); // { q#: 1..5 }
-    let step = loadStep();       // 0=intro, 1..N=questions, N+1=results
+    let step = loadStep();       // 0=intro, 1..N questions, N+1 results
 
-    // ---- Render ----
+    // -------- RENDER --------
     function render() {
       updateProgress();
       const slot = ensureSlot();
@@ -208,7 +268,7 @@ window.addEventListener('DOMContentLoaded', () => {
           <div class="grid gap-4">${bars}</div>
           <div class="mt-4"><h3 class="text-xl font-semibold">Your Top Matches</h3><div class="mt-3 grid gap-4 md:grid-cols-2">${top3}</div></div>
           <div class="mt-2 text-xs text-slate-500">
-            <p><span class="font-semibold">How this works:</span> Each 1–5 answer is centered to −2..+2 and weighted per pathway, then converted to a <em>relative score</em> (z-score across the eight paths) so agreeing with everything doesn’t give all high scores. ~50 is your personal midpoint.</p>
+            <p><span class="font-semibold">How this works:</span> Each 1–5 answer is centered to −2..+2 and weighted per pathway, then converted to a <em>relative score</em> (z-score across all ${PATHWAYS.length} paths) so agreeing with everything doesn’t give all high scores. ~50 is your personal midpoint.</p>
           </div>
           <div class="no-print mt-4 flex items-center gap-3">
             <button class="rounded-xl bg-sky-600 text-white px-4 py-2 text-sm font-semibold hover:bg-sky-700" id="editBtn">Edit answers</button>
@@ -234,7 +294,7 @@ window.addEventListener('DOMContentLoaded', () => {
         </article>`;
     }
 
-    // ---- Scoring: relative (ipsative) to create spread even for high-agreement profiles
+    // -------- SCORING (relative / ipsative) --------
     function scorePaths() {
       const rawTotals = {}; PATHWAYS.forEach(p => rawTotals[p.id] = 0);
       let answeredCount = 0;
@@ -254,7 +314,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const mean = vals.reduce((s,v)=>s+v,0) / (vals.length || 1);
       const variance = vals.reduce((s,v)=>s + Math.pow(v - mean, 2), 0) / (vals.length || 1);
       const stdev = Math.sqrt(variance) || 1;
-      const Z_SCALE = 20; // increase for sharper separation
+      const Z_SCALE = 20; // raise to 22–24 for sharper separation
 
       const scores = {};
       PATHWAYS.forEach(p => {
@@ -270,7 +330,7 @@ window.addEventListener('DOMContentLoaded', () => {
       return { scores, ranked, answeredCount };
     }
 
-    // ---- Storage & wiring ----
+    // -------- STORAGE & WIRING --------
     function persistAnswers(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step })); }catch{} updateProgress(); }
     function loadAnswers(){ try{ const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); return raw && raw.answers ? raw.answers : {}; } catch { return {}; } }
     function loadStep(){ try{ const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); return raw && Number.isInteger(raw.step) ? raw.step : 0; } catch { return 0; } }
