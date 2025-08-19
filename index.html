@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Social Work Path Quiz</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<meta name="description" content="A quick, configurable quiz to help new social work students explore practice pathways (clinical, school, medical, policy, research, etc.)." />
+<style>
+@media print {
+#app { box-shadow: none !important; }
+.no-print { display: none !important; }
+.print-only { display: block !important; }
+}
+.print-only { display: none; }
+</style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+<main id="app" class="mx-auto max-w-4xl p-6 md:p-10">
+<!-- Header -->
+<header class="mb-6">
+<h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Find Your Social Work Path</h1>
+<p class="mt-2 text-slate-600 max-w-2xl">A quick, low-stakes tool to help you explore where you might thrive in social work: clinical, school, community, policy, research/evaluation, health/medical, child & family, or justice/forensic. Your answers aren’t destiny—they’re a conversation starter.</p>
+</header>
+
+
+<!-- Card container -->
+<section class="rounded-2xl bg-white shadow-lg ring-1 ring-black/5 overflow-hidden">
+<!-- Progress Bar -->
+<div id="progressWrap" class="w-full bg-slate-100 h-2">
+<div id="progressBar" class="h-2 bg-sky-500 transition-all" style="width:0%"></div>
+</div>
+
+
+<!-- Content -->
+<div id="content" class="p-6 md:p-8"></div>
+</section>
+
+
+<!-- Footer actions -->
+<div class="mt-6 flex flex-wrap gap-3">
+<button id="printBtn" class="no-print inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50" title="Print or save as PDF">
+<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+Print / Save PDF
+</button>
+<button id="resetBtn" class="no-print inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50" title="Clear saved progress">
+<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><path d="M21 3v9h-9"/></svg>
+Reset
+</button>
+<button id="copyBtn" class="no-print inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50" title="Copy result summary">
+<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+Copy results
+</button>
+</div>
+
+
+<!-- Small deployment note (hidden on print) -->
+<p class="no-print mt-4 text-xs text-slate-500">Deploy by dropping this <code>index.html</code> into a public GitHub repo and enabling GitHub Pages (Settings → Pages → deploy from <em>main</em>).</p>
+</main>
+
+
+<script>
+/**
+* Social Work Path Quiz — Config-first, single-file, GitHub Pages friendly
