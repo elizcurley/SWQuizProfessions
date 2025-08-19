@@ -1,5 +1,5 @@
-// Social Work Path Quiz — 16 pathways, 36 questions (student-friendly) + relative scoring
-// Load from index.html with: <script src="app.js?v=36" defer></script>
+// Social Work Path Quiz — 16 pathways, 50 questions (student-friendly & scenario-flavored)
+// Load from index.html with: <script src="app.js?v=50" defer></script>
 
 window.addEventListener('DOMContentLoaded', () => {
   const fatal = (err) => {
@@ -63,7 +63,7 @@ window.addEventListener('DOMContentLoaded', () => {
         courses: ['Gerontology','Benefits/Medicare & Medicaid','Palliative & Long-Term Care'],
         practicum: ['Area Agencies on Aging','Senior centers','Home health/hospice'] },
       { id: 'substance', name: 'Substance Use & Recovery',
-        blurb: 'Recovery-oriented care; harm reduction, motivational interviewing, treatment & peer supports.',
+        blurb: 'Recovery-oriented care; harm reduction, motivational conversations, treatment & peer supports.',
         courses: ['Substance Use & Recovery','Motivational Interviewing','Co-Occurring Disorders'],
         practicum: ['Outpatient/inpatient programs','MAT clinics','Recovery community orgs'] },
       { id: 'housing', name: 'Housing & Homeless Services',
@@ -92,9 +92,9 @@ window.addEventListener('DOMContentLoaded', () => {
         practicum: ['Hospice agencies','Hospital palliative teams','Home-based care'] },
     ];
 
-    // -------- PROMPTS (36) --------
+    // -------- PROMPTS (50) --------
+    // 1–30 are broad, plain language; 31–50 include richer, scenario-style items and substance use representation.
     const QUESTIONS = [
-      // 1–30 from your student-friendly set
       { id: 'q1',  text: 'I like talking one-on-one with someone to help them figure things out.' },
       { id: 'q2',  text: 'I get curious about how rules and policies shape people’s options—and how to change them.' },
       { id: 'q3',  text: 'I enjoy turning messy information into a clear explanation or short brief.' },
@@ -125,36 +125,54 @@ window.addEventListener('DOMContentLoaded', () => {
       { id: 'q28', text: 'I enjoy using simple feedback or data to improve programs.' },
       { id: 'q29', text: 'Reentry work, diversion programs, or problem-solving courts sound meaningful.' },
       { id: 'q30', text: 'I’d rather help many people indirectly by improving a system than help a few people directly.' },
-      // 31–36 new
+
+      // 31–36 (from the 36q build)
       { id: 'q31', text: 'I’d like to work with older adults and their families.' },
       { id: 'q32', text: 'Supporting survivors of domestic or sexual violence feels meaningful to me.' },
       { id: 'q33', text: 'Helping immigrants and refugees navigate new systems appeals to me.' },
       { id: 'q34', text: 'I enjoy helping people get accommodations and improve accessibility.' },
       { id: 'q35', text: 'End-of-life support and grief work feels meaningful to me.' },
       { id: 'q36', text: 'Coordinating housing or shelter resources sounds like work I’d enjoy.' },
+
+      // 37–50: richer, scenario-flavored; strong substance-use representation
+      { id: 'q37', text: 'I can support someone reducing harm from substance use even if stopping isn’t their goal right now.' },
+      { id: 'q38', text: 'I can hold steady through setbacks and relapses without judging or giving up.' },
+      { id: 'q39', text: 'I like using curious, motivational conversations to help someone consider next steps.' },
+      { id: 'q40', text: 'I’d enjoy working alongside peer support specialists with lived experience.' },
+      { id: 'q41', text: 'Planning around real-life barriers (transportation, childcare, paperwork) sounds satisfying.' },
+      { id: 'q42', text: 'A day where I coordinate with a school, a clinic, and a court sounds energizing, not overwhelming.' },
+      { id: 'q43', text: 'I can talk openly about safety at home and help someone plan for it.' },
+      { id: 'q44', text: 'I like cross-cultural work and collaborating with interpreters or community leaders.' },
+      { id: 'q45', text: 'Step-by-step problem-solving around benefits, forms, or accommodations is my thing.' },
+      { id: 'q46', text: 'Regular outreach in the community (street, shelter, hospital bedside) appeals to me.' },
+      { id: 'q47', text: 'I can be present with grief and end-of-life conversations without shutting down.' },
+      { id: 'q48', text: 'I like building simple checklists or templates that help teams work consistently.' },
+      { id: 'q49', text: 'I’m drawn to supporting service members, veterans, or military families.' },
+      { id: 'q50', text: 'I care about making programs and spaces accessible for different bodies, brains, and senses.' },
     ];
 
     // -------- WEIGHTS (−2..+2 typical; omissions default to 0) --------
+    // Kept earlier weights for q1–q36. Added nuanced weights for q37–q50, with strong coverage for Substance Use & Recovery.
     const WEIGHTS = {
-      // Original 8 paths (q1–q30 retained), with q31–q36 appended
-      clinical:  { q1:2,q2:-1,q3:0,q4:0,q5:1,q6:1,q7:0,q8:0,q9:2,q10:0,q11:-2,q12:1,q13:1,q14:1,q15:0,q16:0,q17:1,q18:1,q19:1,q20:-1,q21:0,q22:-1,q23:0,q24:0,q25:-2,q26:0,q27:1,q28:0,q29:0,q30:-2, q31:1,q32:1,q33:0,q34:0,q35:1,q36:0 },
-      school:    { q1:1,q2:0,q3:0,q4:1,q5:0,q6:0,q7:1,q8:0,q9:2,q10:0,q11:0,q12:2,q13:0,q14:1,q15:0,q16:1,q17:1,q18:2,q19:1,q20:-1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:-1,q27:1,q28:1,q29:0,q30:0, q31:0,q32:1,q33:1,q34:1,q35:0,q36:0 },
-      medical:   { q1:1,q2:0,q3:0,q4:0,q5:2,q6:0,q7:1,q8:1,q9:0,q10:1,q11:0,q12:0,q13:2,q14:0,q15:0,q16:0,q17:0,q18:-1,q19:1,q20:1,q21:0,q22:0,q23:1,q24:2,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0, q31:1,q32:1,q33:1,q34:1,q35:1,q36:0 },
-      childfam:  { q1:1,q2:0,q3:0,q4:1,q5:1,q6:1,q7:0,q8:1,q9:1,q10:0,q11:0,q12:1,q13:0,q14:2,q15:1,q16:1,q17:1,q18:1,q19:2,q20:0,q21:0,q22:0,q23:1,q24:1,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0, q31:0,q32:2,q33:1,q34:1,q35:0,q36:1 },
-      community: { q1:0,q2:1,q3:1,q4:2,q5:1,q6:0,q7:0,q8:2,q9:0,q10:2,q11:1,q12:0,q13:0,q14:1,q15:0,q16:2,q17:2,q18:-1,q19:0,q20:1,q21:1,q22:-1,q23:1,q24:1,q25:0,q26:1,q27:2,q28:1,q29:1,q30:1, q31:0,q32:1,q33:1,q34:1,q35:0,q36:1 },
-      policy:    { q1:-1,q2:2,q3:2,q4:1,q5:0,q6:1,q7:1,q8:0,q9:0,q10:1,q11:2,q12:0,q13:0,q14:0,q15:1,q16:1,q17:2,q18:0,q19:1,q20:1,q21:2,q22:1,q23:0,q24:1,q25:1,q26:0,q27:1,q28:1,q29:1,q30:2, q31:0,q32:1,q33:2,q34:1,q35:0,q36:1 },
-      research:  { q1:-1,q2:1,q3:2,q4:0,q5:0,q6:0,q7:2,q8:-1,q9:1,q10:1,q11:1,q12:0,q13:0,q14:0,q15:0,q16:0,q17:1,q18:1,q19:0,q20:0,q21:1,q22:2,q23:-1,q24:0,q25:2,q26:0,q27:0,q28:2,q29:0,q30:1, q31:0,q32:0,q33:1,q34:1,q35:0,q36:0 },
-      justice:   { q1:1,q2:1,q3:0,q4:0,q5:1,q6:2,q7:0,q8:1,q9:0,q10:0,q11:0,q12:0,q13:0,q14:1,q15:2,q16:1,q17:1,q18:-1,q19:1,q20:1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:0,q27:0,q28:0,q29:2,q30:0, q31:0,q32:1,q33:0,q34:0,q35:0,q36:1 },
+      // Original 8
+      clinical:  { q1:2,q2:-1,q3:0,q4:0,q5:1,q6:1,q7:0,q8:0,q9:2,q10:0,q11:-2,q12:1,q13:1,q14:1,q15:0,q16:0,q17:1,q18:1,q19:1,q20:-1,q21:0,q22:-1,q23:0,q24:0,q25:-2,q26:0,q27:1,q28:0,q29:0,q30:-2, q31:1,q32:1,q33:0,q34:0,q35:1,q36:0, q37:1,q38:1,q39:1,q40:0,q41:0,q42:1,q43:1,q44:0,q45:0,q46:0,q47:1,q48:0,q49:0,q50:0 },
+      school:    { q1:1,q2:0,q3:0,q4:1,q5:0,q6:0,q7:1,q8:0,q9:2,q10:0,q11:0,q12:2,q13:0,q14:1,q15:0,q16:1,q17:1,q18:2,q19:1,q20:-1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:-1,q27:1,q28:1,q29:0,q30:0, q31:0,q32:1,q33:1,q34:1,q35:0,q36:0, q37:0,q38:0,q39:0,q40:0,q41:1,q42:1,q43:1,q44:1,q45:1,q46:0,q47:0,q48:1,q49:0,q50:1 },
+      medical:   { q1:1,q2:0,q3:0,q4:0,q5:2,q6:0,q7:1,q8:1,q9:0,q10:1,q11:0,q12:0,q13:2,q14:0,q15:0,q16:0,q17:0,q18:-1,q19:1,q20:1,q21:0,q22:0,q23:1,q24:2,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0, q31:1,q32:1,q33:1,q34:1,q35:1,q36:0, q37:1,q38:1,q39:1,q40:0,q41:1,q42:1,q43:0,q44:0,q45:1,q46:1,q47:1,q48:1,q49:0,q50:0 },
+      childfam:  { q1:1,q2:0,q3:0,q4:1,q5:1,q6:1,q7:0,q8:1,q9:1,q10:0,q11:0,q12:1,q13:0,q14:2,q15:1,q16:1,q17:1,q18:1,q19:2,q20:0,q21:0,q22:0,q23:1,q24:1,q25:0,q26:1,q27:1,q28:1,q29:0,q30:0, q31:0,q32:2,q33:1,q34:1,q35:0,q36:1, q37:0,q38:1,q39:0,q40:0,q41:1,q42:1,q43:1,q44:1,q45:1,q46:1,q47:0,q48:0,q49:0,q50:1 },
+      community: { q1:0,q2:1,q3:1,q4:2,q5:1,q6:0,q7:0,q8:2,q9:0,q10:2,q11:1,q12:0,q13:0,q14:1,q15:0,q16:2,q17:2,q18:-1,q19:0,q20:1,q21:1,q22:-1,q23:1,q24:1,q25:0,q26:1,q27:2,q28:1,q29:1,q30:1, q31:0,q32:1,q33:1,q34:1,q35:0,q36:1, q37:1,q38:1,q39:1,q40:1,q41:1,q42:2,q43:1,q44:1,q45:1,q46:2,q47:0,q48:1,q49:0,q50:1 },
+      policy:    { q1:-1,q2:2,q3:2,q4:1,q5:0,q6:1,q7:1,q8:0,q9:0,q10:1,q11:2,q12:0,q13:0,q14:0,q15:1,q16:1,q17:2,q18:0,q19:1,q20:1,q21:2,q22:1,q23:0,q24:1,q25:1,q26:0,q27:1,q28:1,q29:1,q30:2, q31:0,q32:1,q33:2,q34:1,q35:0,q36:1, q37:1,q38:0,q39:0,q40:1,q41:1,q42:1,q43:0,q44:1,q45:1,q46:0,q47:0,q48:1,q49:0,q50:1 },
+      research:  { q1:-1,q2:1,q3:2,q4:0,q5:0,q6:0,q7:2,q8:-1,q9:1,q10:1,q11:1,q12:0,q13:0,q14:0,q15:0,q16:0,q17:1,q18:1,q19:0,q20:0,q21:1,q22:2,q23:-1,q24:0,q25:2,q26:0,q27:0,q28:2,q29:0,q30:1, q31:0,q32:0,q33:1,q34:1,q35:0,q36:0, q37:0,q38:0,q39:0,q40:0,q41:0,q42:0,q43:0,q44:0,q45:0,q46:0,q47:0,q48:2,q49:0,q50:1 },
+      justice:   { q1:1,q2:1,q3:0,q4:0,q5:1,q6:2,q7:0,q8:1,q9:0,q10:0,q11:0,q12:0,q13:0,q14:1,q15:2,q16:1,q17:1,q18:-1,q19:1,q20:1,q21:1,q22:0,q23:1,q24:1,q25:0,q26:0,q27:0,q28:0,q29:2,q30:0, q31:0,q32:1,q33:0,q34:0,q35:0,q36:1, q37:0,q38:1,q39:0,q40:0,q41:0,q42:1,q43:1,q44:0,q45:0,q46:1,q47:0,q48:0,q49:0,q50:0 },
 
-      // New 8 paths with q31–q36 emphasized
-      aging:     { q31:2,q32:0,q33:0,q34:1,q35:1,q36:1 },
-      substance: { q31:0,q32:1,q33:0,q34:0,q35:0,q36:1 },
-      housing:   { q31:0,q32:1,q33:1,q34:1,q35:0,q36:2 },
-      disability:{ q31:1,q32:0,q33:0,q34:2,q35:0,q36:1 },
-      immigration:{q31:0,q32:1,q33:2,q34:1,q35:0,q36:1 },
-      dv:        { q31:0,q32:2,q33:1,q34:0,q35:0,q36:1 },
-      veterans:  { q31:1,q32:0,q33:0,q34:1,q35:0,q36:1 },
-      hospice:   { q31:1,q32:0,q33:0,q34:0,q35:2,q36:0 },
+      // New 8
+      aging:      { q31:2,q32:0,q33:0,q34:1,q35:1,q36:1, q37:0,q38:0,q39:0,q40:0,q41:1,q42:0,q43:0,q44:0,q45:1,q46:0,q47:1,q48:0,q49:0,q50:1 },
+      substance:  { q31:0,q32:1,q33:0,q34:0,q35:0,q36:1, q37:2,q38:2,q39:2,q40:2,q41:1,q42:1,q43:0,q44:0,q45:0,q46:1,q47:0,q48:0,q49:0,q50:0 },
+      housing:    { q31:0,q32:1,q33:1,q34:1,q35:0,q36:2, q37:1,q38:0,q39:0,q40:1,q41:2,q42:1,q43:1,q44:1,q45:1,q46:2,q47:0,q48:0,q49:0,q50:0 },
+      disability: { q31:1,q32:0,q33:0,q34:2,q35:0,q36:1, q37:0,q38:0,q39:0,q40:0,q41:1,q42:0,q43:0,q44:1,q45:2,q46:0,q47:0,q48:1,q49:0,q50:2 },
+      immigration:{ q31:0,q32:1,q33:2,q34:1,q35:0,q36:1, q37:0,q38:0,q39:0,q40:0,q41:1,q42:1,q43:0,q44:2,q45:1,q46:1,q47:0,q48:0,q49:0,q50:1 },
+      dv:         { q31:0,q32:2,q33:1,q34:0,q35:0,q36:1, q37:0,q38:1,q39:0,q40:0,q41:1,q42:1,q43:2,q44:0,q45:0,q46:1,q47:0,q48:0,q49:0,q50:0 },
+      veterans:   { q31:1,q32:0,q33:0,q34:1,q35:0,q36:1, q37:0,q38:0,q39:0,q40:1,q41:1,q42:1,q43:0,q44:0,q45:0,q46:0,q47:0,q48:0,q49:2,q50:0 },
+      hospice:    { q31:1,q32:0,q33:0,q34:0,q35:2,q36:0, q37:0,q38:0,q39:0,q40:0,q41:1,q42:0,q43:0,q44:0,q45:0,q46:0,q47:2,q48:0,q49:0,q50:0 },
     };
 
     // -------- STATE --------
@@ -308,7 +326,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const mean = vals.reduce((s,v)=>s+v,0) / (vals.length || 1);
       const variance = vals.reduce((s,v)=>s + Math.pow(v - mean, 2), 0) / (vals.length || 1);
       const stdev = Math.sqrt(variance) || 1;
-      const Z_SCALE = 22; // bump a bit for 16-path separation; try 24 if you want even more spread
+      const Z_SCALE = 23; // a touch higher with 16 paths & 50 items for clearer separation
 
       const scores = {};
       PATHWAYS.forEach(p => {
