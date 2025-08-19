@@ -113,17 +113,53 @@
           { id: 'q16', text: 'I like convening diverse stakeholders to co‑create solutions.' },
           { id: 'q17', text: 'Reducing systemic inequities is a central motivation for my work.' },
           { id: 'q18', text: 'I prefer predictable routines and calendars over constant novelty.' },
+          { id: 'q19', text: 'I’m comfortable with mandated reporting and strict compliance requirements.' },
+          { id: 'q20', text: 'I like brief, solution‑focused engagements more than long‑term ones.' },
+          { id: 'q21', text: 'Public speaking, hearings, or presenting to groups energize me.' },
+          { id: 'q22', text: 'I enjoy deep, heads‑down analysis time.' },
+          { id: 'q23', text: 'Building coalitions across organizations with different agendas sounds exciting.' },
+          { id: 'q24', text: 'Regular home or community visits are something I’d welcome.' },
+          { id: 'q25', text: 'I’m drawn to youth and educational environments.' },
+          { id: 'q26', text: 'I like negotiating with bureaucracies to get services approved.' },
+          { id: 'q27', text: 'I’d rather write memos/briefs than facilitate counseling sessions.' },
+          { id: 'q28', text: 'I’m okay with shift work and occasional weekends if the role needs it.' },
+          { id: 'q29', text: 'I want to lead teams and manage programs.' },
+          { id: 'q30', text: 'Dashboards and KPIs are more useful to me than narrative case notes.' },
         ];
 
         const WEIGHTS = {
-          clinical: { q1: 2,  q2: -1, q3: 1,  q4: 0,  q5: 1,  q6: 1,  q7: 0,  q8: 0,  q9: 2,  q10: 0, q11: -1, q12: 1,  q13: 1,  q14: 1,  q15: 0,  q16: 0,  q17: 1,  q18: 1 },
-          school:   { q1: 1,  q2: 0,  q3: 1,  q4: 1,  q5: 0,  q6: 0,  q7: 0,  q8: 0,  q9: 2,  q10: 0, q11: 0,  q12: 2,  q13: 0,  q14: 1,  q15: 0,  q16: 1,  q17: 1,  q18: 2 },
-          medical:  { q1: 1,  q2: 0,  q3: 0,  q4: 0,  q5: 2,  q6: 0,  q7: 1,  q8: 1,  q9: 0,  q10: 1, q11: 0,  q12: 0,  q13: 2,  q14: 0,  q15: 0,  q16: 0,  q17: 0,  q18: -1 },
-          childfam: { q1: 1,  q2: 0,  q3: 0,  q4: 1,  q5: 1,  q6: 1,  q7: 0,  q8: 1,  q9: 1,  q10: 0, q11: 0,  q12: 1,  q13: 0,  q14: 2,  q15: 1,  q16: 1,  q17: 1,  q18: 1 },
-          community:{ q1: 0,  q2: 2,  q3: 1,  q4: 2,  q5: 1,  q6: 0,  q7: 0,  q8: 2,  q9: 0,  q10: 2, q11: 1,  q12: 0,  q13: 0,  q14: 1,  q15: 0,  q16: 2,  q17: 2,  q18: -1 },
-          policy:   { q1: -1, q2: 2,  q3: 2,  q4: 1,  q5: 0,  q6: 1,  q7: 1,  q8: 0,  q9: 0,  q10: 1, q11: 2,  q12: 0,  q13: 0,  q14: 0,  q15: 2,  q16: 2,  q17: 2,  q18: 0 },
-          research: { q1: -1, q2: 1,  q3: 2,  q4: 0,  q5: 0,  q6: 0,  q7: 2,  q8: -1, q9: 2,  q10: 1, q11: 2,  q12: 1,  q13: 0,  q14: 0,  q15: 0,  q16: 1,  q17: 1,  q18: 1 },
-          justice:  { q1: 0,  q2: 1,  q3: 1,  q4: 0,  q5: 1,  q6: 2,  q7: 0,  q8: 1,  q9: 0,  q10: 1, q11: 0,  q12: 0,  q13: 0,  q14: 1,  q15: 2,  q16: 1,  q17: 2,  q18: -1 },
+          clinical: {
+            q1: 2,  q2: -1, q3: 1,  q4: 0,  q5: 1,  q6: 1,  q7: 0,  q8: 0,  q9: 2,  q10: 0, q11: -1, q12: 1,  q13: 1,  q14: 1,  q15: 0,  q16: 0,  q17: 1,  q18: 1,
+            q19: 0, q20: -2, q21: 0, q22: -1, q23: 0, q24: 0, q25: 1, q26: 0, q27: -2, q28: -1, q29: 0, q30: -1
+          },
+          school:   {
+            q1: 1,  q2: 0,  q3: 1,  q4: 1,  q5: 0,  q6: 0,  q7: 0,  q8: 0,  q9: 2,  q10: 0, q11: 0,  q12: 2,  q13: 0,  q14: 1,  q15: 0,  q16: 1,  q17: 1,  q18: 2,
+            q19: 1, q20: 0,  q21: 1, q22: 0,  q23: 1, q24: 1, q25: 2, q26: 1, q27: 0,  q28: -2, q29: 1, q30: 0
+          },
+          medical:  {
+            q1: 1,  q2: 0,  q3: 0,  q4: 0,  q5: 2,  q6: 0,  q7: 1,  q8: 1,  q9: 0,  q10: 1, q11: 0,  q12: 0,  q13: 2,  q14: 0,  q15: 0,  q16: 0,  q17: 0,  q18: -1,
+            q19: 0, q20: 2,  q21: 0, q22: 0,  q23: 0, q24: 1, q25: 0, q26: 2, q27: 1,  q28: 2,  q29: 1, q30: 1
+          },
+          childfam: {
+            q1: 1,  q2: 0,  q3: 0,  q4: 1,  q5: 1,  q6: 1,  q7: 0,  q8: 1,  q9: 1,  q10: 0, q11: 0,  q12: 1,  q13: 0,  q14: 2,  q15: 1,  q16: 1,  q17: 1,  q18: 1,
+            q19: 2, q20: 0,  q21: 0, q22: 0,  q23: 1, q24: 2, q25: 1, q26: 1, q27: 0,  q28: 1,  q29: 1, q30: 0
+          },
+          community:{
+            q1: 0,  q2: 2,  q3: 1,  q4: 2,  q5: 1,  q6: 0,  q7: 0,  q8: 2,  q9: 0,  q10: 2, q11: 1,  q12: 0,  q13: 0,  q14: 1,  q15: 0,  q16: 2,  q17: 2,  q18: -1,
+            q19: 0, q20: 1,  q21: 2, q22: -1, q23: 2, q24: 1, q25: 1, q26: 1, q27: 0,  q28: 1,  q29: 2, q30: 1
+          },
+          policy:   {
+            q1: -1, q2: 2,  q3: 2,  q4: 1,  q5: 0,  q6: 1,  q7: 1,  q8: 0,  q9: 0,  q10: 1, q11: 2,  q12: 0,  q13: 0,  q14: 0,  q15: 2,  q16: 2,  q17: 2,  q18: 0,
+            q19: 1, q20: 1,  q21: 2, q22: 1,  q23: 2, q24: 0, q25: 0, q26: 1, q27: 2,  q28: 0,  q29: 1, q30: 1
+          },
+          research: {
+            q1: -1, q2: 1,  q3: 2,  q4: 0,  q5: 0,  q6: 0,  q7: 2,  q8: -1, q9: 2,  q10: 1, q11: 2,  q12: 1,  q13: 0,  q14: 0,  q15: 0,  q16: 1,  q17: 1,  q18: 1,
+            q19: 0, q20: 0,  q21: 1, q22: 2,  q23: 0, q24: -1, q25: 0, q26: 0, q27: 2,  q28: 0,  q29: 0, q30: 2
+          },
+          justice:  {
+            q1: 0,  q2: 1,  q3: 1,  q4: 0,  q5: 1,  q6: 2,  q7: 0,  q8: 1,  q9: 0,  q10: 1, q11: 0,  q12: 0,  q13: 0,  q14: 1,  q15: 2,  q16: 1,  q17: 2,  q18: -1,
+            q19: 2, q20: 1,  q21: 1, q22: 0,  q23: 1, q24: 1, q25: 0, q26: 1, q27: 1,  q28: 1,  q29: 0, q30: 0
+          },
         };
 
         /** STATE **/
@@ -231,7 +267,7 @@
               <div><h2 class="text-2xl font-bold">Your Results</h2>${answeredNote}</div>
               <div class="grid gap-4">${bars}</div>
               <div class="mt-4"><h3 class="text-xl font-semibold">Your Top Matches</h3><div class="mt-3 grid gap-4 md:grid-cols-2">${top3}</div></div>
-              <div class="mt-2 text-xs text-slate-500"><p><span class="font-semibold">How this works:</span> We center each 1–5 answer to -2..+2 and apply a weight matrix to each pathway. Normalized scores are scaled to 0–100 across your answered items. This is a reflection tool—not a gatekeeper.</p></div>
+              <div class=\"mt-2 text-xs text-slate-500\"><p><span class=\"font-semibold\">How this works:</span> We center each 1–5 answer to −2..+2 and apply a weight matrix to each pathway. Then we use <em>relative scoring</em> (z‑scores across the eight paths) so saying “agree” to everything doesn’t give all 90s—your strongest alignments rise above your average. Scores are scaled so ~50 is your midpoint.</p></div>
               <div class="no-print mt-4 flex items-center gap-3">
                 <button class="rounded-xl bg-sky-600 text-white px-4 py-2 text-sm font-semibold hover:bg-sky-700" id="editBtn">Edit answers</button>
                 <button class="rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50" id="retakeBtn">Retake</button>
@@ -258,7 +294,41 @@
 
         /** SCORING **/
         function scorePaths() {
-          const pathTotals = {}, pathAbsTotals = {};
+          // Compute raw totals first (Σ w * centered)
+          const rawTotals = {}; // per-path raw sum
+          PATHWAYS.forEach(p => { rawTotals[p.id] = 0; });
+          let answeredCount = 0;
+          QUESTIONS.forEach(q => {
+            const raw = answers[q.id];
+            if (!raw) return;
+            answeredCount++;
+            const centered = raw - 3; // -2..+2
+            PATHWAYS.forEach(p => {
+              const w = (WEIGHTS[p.id] && WEIGHTS[p.id][q.id]) ? WEIGHTS[p.id][q.id] : 0;
+              rawTotals[p.id] += w * centered;
+            });
+          });
+
+          // Ipsative/relative scoring: convert raw totals to z-scores across paths for THIS user.
+          const vals = Object.values(rawTotals);
+          const mean = vals.reduce((a,b)=>a+b,0) / (vals.length || 1);
+          const variance = vals.reduce((a,b)=>a + Math.pow(b - mean, 2), 0) / (vals.length || 1);
+          const stdev = Math.sqrt(variance) || 1; // avoid divide-by-zero
+          const Z_SCALE = 20; // tweak to sharpen/soften separation (higher = more separation)
+
+          const scores = {};
+          PATHWAYS.forEach(p => {
+            const z = (rawTotals[p.id] - mean) / stdev; // roughly -2..+2 typical
+            const pct = Math.round(Math.max(0, Math.min(100, 50 + Z_SCALE * z)));
+            scores[p.id] = pct;
+          });
+
+          const ranked = Object.entries(scores)
+            .map(([id, pct]) => ({ id, pct }))
+            .sort((a, b) => b.pct - a.pct);
+
+          return { scores, ranked, answeredCount };
+        }, pathAbsTotals = {};
           PATHWAYS.forEach(p => { pathTotals[p.id] = 0; pathAbsTotals[p.id] = 0; });
           let answeredCount = 0;
           QUESTIONS.forEach(q => {
@@ -311,8 +381,12 @@
           const top = ranked.slice(0, 3).map(r => {
             const p = PATHWAYS.find(x => x.id === r.id);
             return `${p.name}: ${Math.round(r.pct)}%`;
-          }).join('\n');
-          const text = `Social Work Path Quiz — Top Matches\n${top}\n\nThis tool is exploratory. Use results as a starting point for advising and field searches.`;
+          }).join('
+');
+          const text = `Social Work Path Quiz — Top Matches
+${top}
+
+This tool is exploratory. Use results as a starting point for advising and field searches.`;
           navigator.clipboard.writeText(text).then(() => toast('Results copied to clipboard')).catch(() => alert('Copy failed.'));
         });
 
