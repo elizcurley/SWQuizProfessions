@@ -1,64 +1,440 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Social Work Path Quiz</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<meta name="description" content="A quick, configurable quiz to help new social work students explore practice pathways (clinical, school, medical, policy, research, etc.)." />
-<style>
-@media print {
-#app { box-shadow: none !important; }
-.no-print { display: none !important; }
-.print-only { display: block !important; }
-}
-.print-only { display: none; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Social Work Path Quiz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="A quick, configurable quiz to help new social work students explore practice pathways (clinical, school, medical, policy, research, etc.)." />
+  <style>
+    @media print {
+      #app { box-shadow: none !important; }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+    }
+    .print-only { display: none; }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-900">
-<main id="app" class="mx-auto max-w-4xl p-6 md:p-10">
-<!-- Header -->
-<header class="mb-6">
-<h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Find Your Social Work Path</h1>
-<p class="mt-2 text-slate-600 max-w-2xl">A quick, low-stakes tool to help you explore where you might thrive in social work: clinical, school, community, policy, research/evaluation, health/medical, child & family, or justice/forensic. Your answers aren’t destiny—they’re a conversation starter.</p>
-</header>
+  <main id="app" class="mx-auto max-w-4xl p-6 md:p-10">
+    <!-- Header -->
+    <header class="mb-6">
+      <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Find Your Social Work Path</h1>
+      <p class="mt-2 text-slate-600 max-w-2xl">A quick, low-stakes tool to help you explore where you might thrive in social work: clinical, school, community, policy, research/evaluation, health/medical, child & family, or justice/forensic. Your answers aren’t destiny—they’re a conversation starter.</p>
+    </header>
 
+    <!-- Card container -->
+    <section class="rounded-2xl bg-white shadow-lg ring-1 ring-black/5 overflow-hidden">
+      <!-- Progress Bar -->
+      <div id="progressWrap" class="w-full bg-slate-100 h-2">
+        <div id="progressBar" class="h-2 bg-sky-500 transition-all" style="width:0%"></div>
+      </div>
 
-<!-- Card container -->
-<section class="rounded-2xl bg-white shadow-lg ring-1 ring-black/5 overflow-hidden">
-<!-- Progress Bar -->
-<div id="progressWrap" class="w-full bg-slate-100 h-2">
-<div id="progressBar" class="h-2 bg-sky-500 transition-all" style="width:0%"></div>
-</div>
+      <!-- Content -->
+      <div id="content" class="p-6 md:p-8"></div>
+    </section>
 
+    <!-- Footer actions -->
+    <div class="mt-6 flex flex-wrap gap-3">
+      <button id="printBtn" class="no-print inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50" title="Print or save as PDF">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+        Print / Save PDF
+      </button>
+      <button id="resetBtn" class="no-print inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50" title="Clear saved progress">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><path d="M21 3v9h-9"/></svg>
+        Reset
+      </button>
+      <button id="copyBtn" class="no-print inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50" title="Copy result summary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy results
+      </button>
+    </div>
 
-<!-- Content -->
-<div id="content" class="p-6 md:p-8"></div>
-</section>
+    <!-- Small deployment note (hidden on print) -->
+    <p class="no-print mt-4 text-xs text-slate-500">Deploy by dropping this <code>index.html</code> into a public GitHub repo and enabling GitHub Pages (Settings → Pages → deploy from <em>main</em>).</p>
+  </main>
 
+  <script>
+    /**
+     * Social Work Path Quiz — Config-first, single-file, GitHub Pages friendly
+     * Scoring model: answers are centered (1..5 ➜ -2..+2). Pathway score = Σ(weight_q * centeredAnswer_q).
+     * We normalize per-path over answered items so each path returns 0–100.
+     */
 
-<!-- Footer actions -->
-<div class="mt-6 flex flex-wrap gap-3">
-<button id="printBtn" class="no-print inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50" title="Print or save as PDF">
-<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
-Print / Save PDF
-</button>
-<button id="resetBtn" class="no-print inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50" title="Clear saved progress">
-<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/><path d="M21 3v9h-9"/></svg>
-Reset
-</button>
-<button id="copyBtn" class="no-print inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50" title="Copy result summary">
-<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-Copy results
-</button>
-</div>
+    const STORAGE_KEY = 'sw-path-quiz-v1';
 
+    const PATHWAYS = [
+      {
+        id: 'clinical',
+        name: 'Clinical / Therapy',
+        blurb: 'One-on-one and small-group counseling, assessment, treatment planning, crisis intervention.',
+        courses: ['Clinical Practice I/II', 'Psychopathology/Assessment', 'Trauma-Informed Practice'],
+        practicum: ['Outpatient mental health clinic', 'Hospital psych unit', 'College counseling']
+      },
+      {
+        id: 'school',
+        name: 'School Social Work',
+        blurb: 'Supporting students, families, and educators; MTSS/RTI, attendance, and IEP collaboration.',
+        courses: ['School Social Work', 'Child & Adolescent Practice', 'Family Systems'],
+        practicum: ['K–12 schools', 'Alternative education programs', 'After-school programs']
+      },
+      {
+        id: 'medical',
+        name: 'Health / Medical Social Work',
+        blurb: 'Hospitals, clinics, care transitions, interdisciplinary teams, discharge planning.',
+        courses: ['Health/Meds SW', 'Integrated Care', 'Motivational Interviewing'],
+        practicum: ['Medical-surgical unit', 'Primary care clinic', 'Oncology/NICU']
+      },
+      {
+        id: 'childfam',
+        name: 'Child & Family Welfare',
+        blurb: 'Safety, permanency, wellbeing; prevention, family preservation, foster/kinship support.',
+        courses: ['Child Welfare', 'Family Systems', 'Trauma & Resilience'],
+        practicum: ['CPS/child welfare services', 'Family resource centers', 'Prevention programs']
+      },
+      {
+        id: 'community',
+        name: 'Community Organizing & Program Development',
+        blurb: 'Coalition building, outreach, program design/management, fundraising and partnerships.',
+        courses: ['Macro Practice', 'Program Planning', 'Community Organizing'],
+        practicum: ['Community-based nonprofits', 'Neighborhood initiatives', 'Mutual aid orgs']
+      },
+      {
+        id: 'policy',
+        name: 'Policy & Advocacy',
+        blurb: 'Legislative advocacy, policy analysis, systems design, coalition politics.',
+        courses: ['Policy Analysis', 'Advocacy & Lobbying', 'Economics of Social Policy'],
+        practicum: ['Legislative offices', 'Policy think tanks', 'Advocacy coalitions']
+      },
+      {
+        id: 'research',
+        name: 'Research & Program Evaluation',
+        blurb: 'Study design, measurement, implementation science, data visualization and reporting.',
+        courses: ['Research Methods', 'Program Evaluation', 'Data Analysis/Stats'],
+        practicum: ['Research centers', 'Evaluation firms', 'University labs']
+      },
+      {
+        id: 'justice',
+        name: 'Justice / Forensic Social Work',
+        blurb: 'Courts, reentry, probation, corrections; mitigation, diversion, and family support.',
+        courses: ['Forensic/Justice SW', 'Substance Use & Recovery', 'Trauma-Informed Systems'],
+        practicum: ['Public defender/mitigation teams', 'Reentry programs', 'Problem-solving courts']
+      }
+    ];
 
-<!-- Small deployment note (hidden on print) -->
-<p class="no-print mt-4 text-xs text-slate-500">Deploy by dropping this <code>index.html</code> into a public GitHub repo and enabling GitHub Pages (Settings → Pages → deploy from <em>main</em>).</p>
-</main>
+    const QUESTIONS = [
+      { id: 'q1',  text: 'I enjoy one-on-one counseling conversations.', },
+      { id: 'q2',  text: 'I’m energized by analyzing data and evaluating programs.', },
+      { id: 'q3',  text: 'I want to influence policy and laws.', },
+      { id: 'q4',  text: 'I like organizing groups and facilitating coalitions.', },
+      { id: 'q5',  text: 'I’m comfortable in hospital/medical settings.', },
+      { id: 'q6',  text: 'I prefer working with children, youth, and families.', },
+      { id: 'q7',  text: 'I’m drawn to justice-involved populations and court systems.', },
+      { id: 'q8',  text: 'I like building programs from scratch and managing projects.', },
+      { id: 'q9',  text: 'I prefer behind-the-scenes research and writing.', },
+      { id: 'q10', text: 'I enjoy crisis work and high-intensity settings.', },
+      { id: 'q11', text: 'I value long-term therapeutic relationships.', },
+      { id: 'q12', text: 'I’d rather design systems/processes than provide therapy.', },
+      { id: 'q13', text: 'School settings (K–12 or higher ed) appeal to me.', },
+      { id: 'q14', text: 'I enjoy community outreach and on-the-ground engagement.', },
+      { id: 'q15', text: 'Supervising/mentoring teams sounds exciting to me.', },
+      { id: 'q16', text: 'I’m comfortable with numbers, measures, and logic models.', },
+      { id: 'q17', text: 'Advocacy and lobbying appeal to me.', },
+      { id: 'q18', text: 'I prefer flexible, field-based roles over office-based work.', },
+    ];
 
+    // Per-question weights for each pathway. Numbers usually in [-2..2].
+    // Centered answers (-2..+2) multiply these weights before summing.
+    const WEIGHTS = {
+      clinical: { q1: 2,  q2: -1, q3: -1, q4: 0,  q5: 1,  q6: 1,  q7: 1,  q8: 0,  q9: -1, q10: 1, q11: 2, q12: -1, q13: 0,  q14: 0,  q15: 0,  q16: -1, q17: 0,  q18: 0 },
+      school:   { q1: 1,  q2: 0,  q3: 0,  q4: 1,  q5: 0,  q6: 2,  q7: 0,  q8: 0,  q9: 0,  q10: 0, q11: 1, q12: 0,  q13: 2,  q14: 1,  q15: 1,  q16: 0,  q17: 0,  q18: 0 },
+      medical:  { q1: 1,  q2: 0,  q3: 0,  q4: 0,  q5: 2,  q6: 0,  q7: 0,  q8: 0,  q9: 0,  q10: 1, q11: 0, q12: 0,  q13: 0,  q14: 0,  q15: 1,  q16: 0,  q17: 0,  q18: 0 },
+      childfam: { q1: 1,  q2: 0,  q3: 0,  q4: 1,  q5: 0,  q6: 2,  q7: 0,  q8: 0,  q9: 0,  q10: 1, q11: 1, q12: 0,  q13: 1,  q14: 1,  q15: 0,  q16: 0,  q17: 0,  q18: 1 },
+      community:{ q1: 0,  q2: 0,  q3: 1,  q4: 2,  q5: 0,  q6: 1,  q7: 1,  q8: 2,  q9: 0,  q10: 1, q11: 0, q12: 1,  q13: 0,  q14: 2,  q15: 1,  q16: 0,  q17: 1,  q18: 1 },
+      policy:   { q1: -1, q2: 1,  q3: 2,  q4: 1,  q5: 0,  q6: 0,  q7: 1,  q8: 1,  q9: 1,  q10: 0, q11: 0, q12: 1,  q13: 0,  q14: 0,  q15: 1,  q16: 1,  q17: 2,  q18: 0 },
+      research: { q1: -1, q2: 2,  q3: 1,  q4: 0,  q5: 0,  q6: 0,  q7: 0,  q8: 1,  q9: 2,  q10: 0, q11: 0, q12: 1,  q13: 0,  q14: 0,  q15: 0,  q16: 2,  q17: 0,  q18: 0 },
+      justice:  { q1: 1,  q2: 0,  q3: 1,  q4: 0,  q5: 0,  q6: 0,  q7: 2,  q8: 0,  q9: 0,  q10: 1, q11: 0, q12: 0,  q13: 0,  q14: 1,  q15: 0,  q16: 0,  q17: 1,  q18: 1 },
+    };
 
-<script>
-/**
-* Social Work Path Quiz — Config-first, single-file, GitHub Pages friendly
+    // ---- State ----
+    let answers = loadAnswers(); // { q1: 1..5 }
+    let step = loadStep(); // 0 = intro, 1..N = questions, N+1 = results
+
+    // ---- Renderers ----
+
+    function render() {
+      updateProgress();
+      const slot = document.getElementById('content');
+      slot.innerHTML = '';
+      if (step === 0) {
+        slot.appendChild(renderIntro());
+      } else if (step >= 1 && step <= QUESTIONS.length) {
+        slot.appendChild(renderQuestion(step));
+      } else {
+        slot.appendChild(renderResults());
+      }
+    }
+
+    function renderIntro() {
+      const el = document.createElement('div');
+      el.innerHTML = `
+        <div class="flex flex-col gap-4">
+          <p class="text-slate-700">Rate a few statements from <span class="font-semibold">Strongly Disagree (1)</span> to <span class="font-semibold">Strongly Agree (5)</span>. We’ll show your top matches with quick next steps.</p>
+          <ul class="list-disc pl-6 text-slate-600 space-y-1">
+            <li>No logins. Your progress saves locally.</li>
+            <li>You can skip questions and come back.</li>
+            <li>Results can be printed or saved as PDF.</li>
+          </ul>
+          <div class="mt-2 flex items-center gap-3">
+            <button id="startBtn" class="rounded-2xl bg-sky-600 text-white px-5 py-3 text-sm font-semibold shadow hover:bg-sky-700">Start quiz</button>
+            <button id="jumpResultsBtn" class="text-sky-700 underline underline-offset-2">See last saved results</button>
+          </div>
+        </div>
+      `;
+      el.querySelector('#startBtn').addEventListener('click', () => setStep(1));
+      el.querySelector('#jumpResultsBtn').addEventListener('click', () => setStep(QUESTIONS.length + 1));
+      return el;
+    }
+
+    function renderQuestion(idx) {
+      const q = QUESTIONS[idx - 1];
+      const el = document.createElement('div');
+      const val = answers[q.id] ?? null;
+      el.innerHTML = `
+        <div class="flex flex-col gap-6">
+          <div>
+            <p class="text-xs uppercase tracking-wide text-slate-500">Question ${idx} of ${QUESTIONS.length}</p>
+            <h2 class="mt-1 text-2xl font-bold">${q.text}</h2>
+          </div>
+
+          <fieldset class="space-y-3" aria-label="Likert scale from 1 to 5">
+            ${renderLikert(q.id, val)}
+          </fieldset>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button class="rounded-xl bg-sky-600 text-white px-4 py-2 text-sm font-semibold hover:bg-sky-700" id="nextBtn">${idx === QUESTIONS.length ? 'Finish' : 'Next'}</button>
+            <button class="rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50" id="skipBtn">Skip</button>
+            <button class="rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50" id="prevBtn">Back</button>
+          </div>
+        </div>
+      `;
+
+      el.querySelector('#nextBtn').addEventListener('click', () => {
+        // advance even if unanswered
+        if (idx === QUESTIONS.length) setStep(QUESTIONS.length + 1);
+        else setStep(idx + 1);
+      });
+      el.querySelector('#skipBtn').addEventListener('click', () => {
+        if (idx === QUESTIONS.length) setStep(QUESTIONS.length + 1);
+        else setStep(idx + 1);
+      });
+      el.querySelector('#prevBtn').addEventListener('click', () => setStep(Math.max(0, idx - 1)));
+      return el;
+    }
+
+    function renderLikert(qid, currentVal) {
+      const labels = ['1 Strongly Disagree','2','3','4','5 Strongly Agree'];
+      return labels.map((label, i) => {
+        const val = i + 1;
+        const checked = currentVal === val ? 'checked' : '';
+        const short = label.split(' ')[0];
+        return `
+          <label class="flex items-center gap-3 rounded-xl border border-slate-200 p-3 cursor-pointer hover:bg-slate-50">
+            <input type="radio" name="${qid}" value="${val}" ${checked} class="h-4 w-4" />
+            <span class="text-sm">${label}</span>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function renderResults() {
+      const { scores, ranked, answeredCount } = scorePaths();
+      const el = document.createElement('div');
+
+      const answeredNote = answeredCount === 0
+        ? '<p class="text-sm text-rose-600">You skipped everything—results are empty. Go back and answer a few!</p>'
+        : `<p class="text-sm text-slate-500">Based on <strong>${answeredCount}</strong> answered item${answeredCount===1?'':'s'}. You can change answers and results will update.</p>`;
+
+      const bars = ranked.map(({ id, pct }) => {
+        const p = PATHWAYS.find(p => p.id === id);
+        const w = Math.round(pct);
+        const label = `${p.name} — ${w}% fit`;
+        return `
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-sm">
+              <span class="font-medium">${p.name}</span>
+              <span class="tabular-nums">${w}%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+              <div class="h-3 bg-sky-500" style="width:${w}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const top3 = ranked.slice(0, 3).map(({ id, pct }) => {
+        const p = PATHWAYS.find(p => p.id === id);
+        return renderPathwayCard(p, Math.round(pct));
+      }).join('');
+
+      el.innerHTML = `
+        <div class="flex flex-col gap-6">
+          <div>
+            <h2 class="text-2xl font-bold">Your Results</h2>
+            ${answeredNote}
+          </div>
+          <div class="grid gap-4">${bars}</div>
+
+          <div class="mt-4">
+            <h3 class="text-xl font-semibold">Your Top Matches</h3>
+            <div class="mt-3 grid gap-4 md:grid-cols-2">${top3}</div>
+          </div>
+
+          <div class="mt-2 text-xs text-slate-500">
+            <p><span class="font-semibold">How this works:</span> We center each 1–5 answer to -2..+2 and apply a small weight matrix to each pathway. Normalized scores are scaled to 0–100 across your answered items. This is a reflection tool—not a gatekeeper.</p>
+          </div>
+
+          <div class="no-print mt-4 flex items-center gap-3">
+            <button class="rounded-xl bg-sky-600 text-white px-4 py-2 text-sm font-semibold hover:bg-sky-700" id="editBtn">Edit answers</button>
+            <button class="rounded-xl bg-white border border-slate-200 px-4 py-2 text-sm font-medium hover:bg-slate-50" id="retakeBtn">Retake</button>
+          </div>
+        </div>
+      `;
+
+      el.querySelector('#editBtn').addEventListener('click', () => setStep(1));
+      el.querySelector('#retakeBtn').addEventListener('click', () => { answers = {}; persistAnswers(); setStep(1); });
+      return el;
+    }
+
+    function renderPathwayCard(p, pct) {
+      const courseList = p.courses.map(c => `<li>${c}</li>`).join('');
+      const pracList = p.practicum.map(c => `<li>${c}</li>`).join('');
+      return `
+        <article class="rounded-2xl border border-slate-200 p-4">
+          <div class="flex items-center justify-between">
+            <h4 class="text-lg font-semibold">${p.name}</h4>
+            <span class="text-sm tabular-nums rounded-full bg-sky-50 text-sky-700 px-2 py-1">${pct}%</span>
+          </div>
+          <p class="mt-1 text-sm text-slate-600">${p.blurb}</p>
+          <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div>
+              <p class="text-xs font-semibold text-slate-500">Suggested coursework</p>
+              <ul class="mt-1 text-sm list-disc pl-5">${courseList}</ul>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500">Field/Practicum ideas</p>
+              <ul class="mt-1 text-sm list-disc pl-5">${pracList}</ul>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    // ---- Scoring ----
+    function scorePaths() {
+      // Build per-path sums and weight sums over answered items
+      const pathTotals = {};
+      const pathAbsTotals = {};
+      PATHWAYS.forEach(p => { pathTotals[p.id] = 0; pathAbsTotals[p.id] = 0; });
+
+      let answeredCount = 0;
+      QUESTIONS.forEach(q => {
+        const raw = answers[q.id];
+        if (!raw) return; // skipped
+        answeredCount++;
+        const centered = raw - 3; // -2..+2
+        PATHWAYS.forEach(p => {
+          const w = (WEIGHTS[p.id] && WEIGHTS[p.id][q.id]) ? WEIGHTS[p.id][q.id] : 0;
+          pathTotals[p.id] += w * centered;
+          pathAbsTotals[p.id] += Math.abs(w) * 2; // max contribution for this q
+        });
+      });
+
+      // Normalize each path to 0..100
+      const scores = {};
+      PATHWAYS.forEach(p => {
+        const denom = pathAbsTotals[p.id] || 1; // avoid /0
+        const norm = pathTotals[p.id] / denom; // in [-1..1]
+        scores[p.id] = Math.max(0, Math.min(100, Math.round(((norm + 1) / 2) * 100)));
+      });
+
+      const ranked = Object.entries(scores)
+        .map(([id, pct]) => ({ id, pct }))
+        .sort((a, b) => b.pct - a.pct);
+
+      return { scores, ranked, answeredCount };
+    }
+
+    // ---- Persistence ----
+    function persistAnswers() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step }));
+      updateProgress();
+    }
+    function loadAnswers() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return raw && raw.answers ? raw.answers : {};
+      } catch { return {}; }
+    }
+    function loadStep() {
+      try {
+        const raw = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        return raw && Number.isInteger(raw.step) ? raw.step : 0;
+      } catch { return 0; }
+    }
+    function setStep(n) { step = n; persistAnswers(); render(); }
+
+    // ---- UI wiring ----
+    function updateProgress() {
+      const total = QUESTIONS.length;
+      const answered = Object.values(answers).filter(Boolean).length;
+      const pct = step === 0 ? 0 : Math.round((Math.max(1, Math.min(step, total)) / total) * 100);
+      const bar = document.getElementById('progressBar');
+      if (bar) bar.style.width = pct + '%';
+    }
+
+    // Track radio changes globally
+    document.addEventListener('change', (e) => {
+      const el = e.target;
+      if (el && el.name && el.type === 'radio') {
+        const qid = el.name;
+        const val = Number(el.value);
+        if (QUESTIONS.find(q => q.id === qid)) {
+          answers[qid] = val;
+          persistAnswers();
+        }
+      }
+    });
+
+    // Global buttons
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (confirm('Clear saved answers and results?')) {
+        answers = {}; step = 0; persistAnswers(); render();
+      }
+    });
+    document.getElementById('copyBtn').addEventListener('click', () => {
+      const { ranked } = scorePaths();
+      const top = ranked.slice(0, 3).map(r => {
+        const p = PATHWAYS.find(x => x.id === r.id);
+        return `${p.name}: ${Math.round(r.pct)}%`;
+      }).join('\n');
+      const text = `Social Work Path Quiz — Top Matches\n${top}\n\nThis tool is exploratory. Use results as a starting point for advising and field searches.`;
+      navigator.clipboard.writeText(text).then(() => {
+        toast('Results copied to clipboard');
+      }).catch(() => alert('Copy failed.')); 
+    });
+
+    function toast(msg) {
+      const t = document.createElement('div');
+      t.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-3 py-2 rounded-xl shadow-lg';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 1800);
+    }
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
