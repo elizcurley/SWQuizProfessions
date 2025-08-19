@@ -244,6 +244,90 @@
 
         function renderPathwayCard(p, pct) {
           const courseList = p.courses.map(c => `<li>${c}</li>`).join('');
-          const pracList = p.practicum.ma
+          const pracList = p.practicum.map(c => `<li>${c}</li>`).join('');
+          return `
+            <article class="rounded-2xl border border-slate-200 p-4">
+              <div class="flex items-center justify-between"><h4 class="text-lg font-semibold">${p.name}</h4><span class="text-sm tabular-nums rounded-full bg-sky-50 text-sky-700 px-2 py-1">${pct}%</span></div>
+              <p class="mt-1 text-sm text-slate-600">${p.blurb}</p>
+              <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+                <div><p class="text-xs font-semibold text-slate-500">Suggested coursework</p><ul class="mt-1 text-sm list-disc pl-5">${courseList}</ul></div>
+                <div><p class="text-xs font-semibold text-slate-500">Field/Practicum ideas</p><ul class="mt-1 text-sm list-disc pl-5">${pracList}</ul></div>
+              </div>
+            </article>`;
+        }
+
+        /** SCORING **/
+        function scorePaths() {
+          const pathTotals = {}, pathAbsTotals = {};
+          PATHWAYS.forEach(p => { pathTotals[p.id] = 0; pathAbsTotals[p.id] = 0; });
+          let answeredCount = 0;
+          QUESTIONS.forEach(q => {
+            const raw = answers[q.id];
+            if (!raw) return;
+            answeredCount++;
+            const centered = raw - 3; // -2..+2
+            PATHWAYS.forEach(p => {
+              const w = (WEIGHTS[p.id] && WEIGHTS[p.id][q.id]) ? WEIGHTS[p.id][q.id] : 0;
+              pathTotals[p.id] += w * centered;
+              pathAbsTotals[p.id] += Math.abs(w) * 2;
+            });
+          });
+          const scores = {};
+          PATHWAYS.forEach(p => {
+            const denom = pathAbsTotals[p.id] || 1;
+            const norm = pathTotals[p.id] / denom; // [-1..1]
+            scores[p.id] = Math.max(0, Math.min(100, Math.round(((norm + 1) / 2) * 100)));
+          });
+          const ranked = Object.entries(scores).map(([id, pct]) => ({ id, pct })).sort((a,b) => b.pct - a.pct);
+          return { scores, ranked, answeredCount };
+        }
+
+        /** PERSIST **/
+        function persistAnswers() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, step })); } catch {} updateProgress(); }
+        function loadAnswers() { try { const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); return raw && raw.answers ? raw.answers : {}; } catch { return {}; } }
+        function loadStep() { try { const raw = JSON.parse(localStorage.getItem(STORAGE_KEY)); return raw && Number.isInteger(raw.step) ? raw.step : 0; } catch { return 0; } }
+        function setStep(n) { step = n; persistAnswers(); render(); }
+
+        /** UI WIRING **/
+        function updateProgress() {
+          const total = QUESTIONS.length;
+          const pct = step === 0 ? 0 : Math.round((Math.max(1, Math.min(step, total)) / total) * 100);
+          const bar = document.getElementById('progressBar');
+          if (bar) bar.style.width = pct + '%';
+        }
+
+        document.addEventListener('change', (e) => {
+          const el = e.target;
+          if (el && el.name && el.type === 'radio') {
+            const qid = el.name; const val = Number(el.value);
+            if (QUESTIONS.find(q => q.id === qid)) { answers[qid] = val; persistAnswers(); }
+          }
+        });
+
+        document.getElementById('printBtn')?.addEventListener('click', () => window.print());
+        document.getElementById('resetBtn')?.addEventListener('click', () => { if (confirm('Clear saved answers and results?')) { answers = {}; step = 0; persistAnswers(); render(); } });
+        document.getElementById('copyBtn')?.addEventListener('click', () => {
+          const { ranked } = scorePaths();
+          const top = ranked.slice(0, 3).map(r => {
+            const p = PATHWAYS.find(x => x.id === r.id);
+            return `${p.name}: ${Math.round(r.pct)}%`;
+          }).join('\n');
+          const text = `Social Work Path Quiz — Top Matches\n${top}\n\nThis tool is exploratory. Use results as a starting point for advising and field searches.`;
+          navigator.clipboard.writeText(text).then(() => toast('Results copied to clipboard')).catch(() => alert('Copy failed.'));
+        });
+
+        function toast(msg) {
+          const t = document.createElement('div');
+          t.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-sm px-3 py-2 rounded-xl shadow-lg';
+          t.textContent = msg;
+          document.body.appendChild(t);
+          setTimeout(() => t.remove(), 1800);
+        }
+
+        // Initial paint
+        render();
+      } catch (err) { fatal(err); }
+    });
+  </script>
 </body>
 </html>
